@@ -8,17 +8,17 @@ import Navbar from "@/components/Navbar";
 
 
 export default async function DashLayout({children}: {children: ReactNode}) {
-    // const token = (await cookies()).get("token")?.value;
-    // if (!token) redirect("/");
+    const token = (await cookies()).get("token")?.value;
+    if (!token) redirect("/");
 
-    // try {
-    //     // 3. Verify using jsonwebtoken (Node.js runtime)
-    //     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    try {
+        // 3. Verify using jsonwebtoken (Node.js runtime)
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!);
         
-    //   } catch (err) {
-    //     // 4. If invalid/expired, back to login
-    //     return redirect("/");
-    //   }
+      } catch (err) {
+        // 4. If invalid/expired, back to login
+        return redirect("/");
+      }
 
     return (
         
