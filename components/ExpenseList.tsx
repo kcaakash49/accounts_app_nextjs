@@ -1,0 +1,75 @@
+import { expenseHistory } from "@/action/expenseHistory";
+import DisplayError from "./DisplayError";
+
+
+export default async function(){
+    try{
+        const res = await expenseHistory();
+        
+        if(!res.success){
+            <DisplayError error="Something Happened"/>
+        }
+
+        if(!res.data || res.data.length === 0){
+            return <DisplayError error="No data Found"/>
+        }
+
+        return (
+            <div className="p-4">
+            {/* Table view for medium and larger screens */}
+            <div className="hidden md:block">
+              <table className="w-full table-auto border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="p-2 text-left">#</th>
+                    <th className="p-2 text-left">Title</th>
+                    <th className="p-2 text-left">Type</th>
+                    <th className="p-2 text-left">Amount</th>
+                    <th className="p-2 text-left">Note</th>
+                    <th className="p-2 text-left">Recorded By</th>
+                    <th className="p-2 text-left">Created At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {res?.data?.map((expense : any, index: number) => (
+                    <tr key={expense.id} className="border-b dark:border-gray-700">
+                      <td className="p-2">{index + 1}</td>
+                      <td className="p-2">{expense.title}</td>
+                      <td className="p-2">{expense.expenseType}</td>
+                      <td className="p-2">Rs. {expense.amount}</td>
+                      <td className="p-2">{expense.note || "—"}</td>
+                      <td className="p-2">{expense.recordedBy?.name}</td>
+                      <td className="p-2">{new Date(expense.createdAt).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+      
+            {/* Card view for small screens */}
+            <div className="block md:hidden space-y-4">
+              {res?.data?.map((expense : any) => (
+                <div
+                  key={expense.id}
+                  className="rounded-2xl shadow-md p-4 "
+                >
+                  <h2 className="text-lg font-semibold mb-2">{expense.title}</h2>
+                  <div className="text-sm text-gray-700">
+                    <p><strong>Amount:</strong> Rs. {expense.amount}</p>
+                    <p><strong>Expense Type:</strong> Rs. {expense.expenseType}</p>
+                    <p><strong>Recorded By:</strong> Rs. {expense.recordedBy?.name}</p>
+                    <p><strong>Note:</strong> Rs. {expense.note}</p>
+                    <p><strong>Date:</strong> {new Date(expense.createdAt).toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+    }catch(e){
+        return (
+            <DisplayError error="Internal Server Error!!!"/>
+        )
+    }
+
+}

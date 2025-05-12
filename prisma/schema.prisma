@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Customer {
+  id         Int       @id @default(autoincrement())
+  name       String
+  contact    String
+  address    String?
+  status     DueStatus  @default(UNPAID)
+  createdAt  DateTime  @default(now())
+  dueDate    DateTime? 
+  sales       Sales[]        // All dues recorded for the customer
+  payments   Payment[]    // All payments made by the customer
+}
+
+model Sales {
+  id          Int        @id @default(autoincrement())
+  customer    Customer   @relation(fields: [customerId], references: [id])
+  customerId  Int
+  amount      Float
+  note        String?
+  createdAt   DateTime   @default(now())
+}
+
+model Payment {
+  id          Int        @id @default(autoincrement())
+  customer    Customer   @relation(fields: [customerId], references: [id])
+  customerId  Int
+  amountPaid  Float
+  paymentMethod PaymentMethod 
+  paidAt      DateTime   @default(now())
+  note        String?
+
+  recordedBy  AdminUser  @relation(fields: [adminUserId], references: [id])
+  adminUserId Int
+}
+
+model AdminUser {
+  id         Int       @id @default(autoincrement())
+  name       String
+  username   String    @unique
+  password   String
+  createdAt  DateTime  @default(now())
+  expenses   Expenses[]
+  payments   Payment[] // Payments recorded by the admin
+}
+
+model Expenses {
+  id         Int        @id @default(autoincrement())
+  amount     Float
+  title      String
+  expenseType String
+  note        String
+  recordedBy  AdminUser   @relation(fields: [adminUserId], references: [id])
+  adminUserId Int
+  createdAt   DateTime  @default(now())
+}
+
+enum DueStatus {
+  UNPAID
+  PARTIAL
+  PAID
+}
+
+enum PaymentMethod {
+  ONLINE
+  CASH
+}
+
+enum SalesStatus {
+  PAID
+  UNPAID
+}
