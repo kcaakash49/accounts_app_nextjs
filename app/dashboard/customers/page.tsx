@@ -32,6 +32,7 @@ export default async function () {
         if (!users?.users || users?.users.length === 0) {
             return (
                 <div className="flex h-full items-center justify-center">
+                    <AddCustomer/>
                     <div>No Customer Record</div>
                 </div>
 
