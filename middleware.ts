@@ -4,7 +4,10 @@ import jwt from "jsonwebtoken";
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
+  
   const isLoginPage = request.nextUrl.pathname === "/";
+
+  console.log(token,isLoginPage);
 
 
   if (!token) {
