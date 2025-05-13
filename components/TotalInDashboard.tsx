@@ -19,19 +19,20 @@ export default async function () {
 
         return (
             <div className="max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 p-6">
-                    {stats.map((stat, index) => (
-                        <AnimatedStat
-                            key={index}
-                            label={stat.label}
-                            value={stat.value.toFixed(2)}
-                            delay={index * 0.1}
-                            ringColor={stat.color}
-                        />
-                    ))}
-                </div>
-
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 p-4 sm:p-6">
+              {stats.map((stat, index) => (
+                <AnimatedStat
+                  key={index}
+                  label={stat.label}
+                  value={stat.value.toFixed(2)}
+                  delay={index * 0.1}
+                  ringColor={stat.color}
+                />
+              ))}
             </div>
+          </div>
+          
+
         );
     } catch (e) {
         return (

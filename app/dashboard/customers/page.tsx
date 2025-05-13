@@ -4,6 +4,7 @@ import { getCustomer } from "@/action/getCustomer";
 import AddCustomer from "@/components/AddCustomer";
 import CustomerList from "@/components/CustomerList";
 import Navbar from "@/components/Navbar";
+import { ActiveStatus, DueStatus } from "@prisma/client";
 import Link from "next/link";
 
 export type User = {
@@ -14,7 +15,11 @@ export type User = {
     createdAt: Date;
     remainingDues: number;
     dueDate: Date | null;
+    activeStatus: ActiveStatus;
+    status: DueStatus;
 };
+
+
 
 type UserSchema =
     | { users: User[]; error?: undefined; err?: undefined }
@@ -39,12 +44,17 @@ export default async function () {
             )
         }
 
+        
+
 
 
         return (
             <div>
                 <AddCustomer/>
+                <div className="mt-5 md:sm-10">
                 <CustomerList users={users?.users}/>
+
+                </div>
 
             </div>
         )

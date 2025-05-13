@@ -1,9 +1,10 @@
 "use server"
 
 import client from "@/db";
+import { ActiveStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
-export async function addcustomer({name, contact, address} : {name: string, contact: string, address: string} ){
+export async function addcustomer({name, contact, address,activeStatus,secondContact} : {name: string, contact: string, address: string, activeStatus: ActiveStatus, secondContact: string } ){
     console.log(name,contact,address)
 
     try {
@@ -11,7 +12,8 @@ export async function addcustomer({name, contact, address} : {name: string, cont
             data: {
                 name: name,
                 contact: contact,
-                address: address
+                address: address,
+                activeStatus: activeStatus
             }
         })
         revalidatePath('/dashboard/customers')

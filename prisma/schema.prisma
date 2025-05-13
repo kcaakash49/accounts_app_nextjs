@@ -20,11 +20,13 @@ model Customer {
   name       String
   contact    String
   address    String?
+  activeStatus ActiveStatus @default(ONLINE)
   status     DueStatus  @default(UNPAID)
   createdAt  DateTime  @default(now())
   dueDate    DateTime? 
   sales       Sales[]        // All dues recorded for the customer
-  payments   Payment[]    // All payments made by the customer
+  payments   Payment[]   
+   // All payments made by the customer
 }
 
 model Sales {
@@ -56,7 +58,8 @@ model AdminUser {
   password   String
   createdAt  DateTime  @default(now())
   expenses   Expenses[]
-  payments   Payment[] // Payments recorded by the admin
+  payments   Payment[] 
+  trashPayments TrashPayment[]
 }
 
 model Expenses {
@@ -69,6 +72,42 @@ model Expenses {
   adminUserId Int
   createdAt   DateTime  @default(now())
 }
+
+model TrashCustomer {
+  id          Int            @id @default(autoincrement())
+  name        String
+  contact     String
+  address     String?
+  activeStatus ActiveStatus
+  status      DueStatus
+  createdAt   DateTime
+  deletedAt   DateTime       @default(now())
+  dueDate     DateTime?
+  sales       TrashSales[]
+  payments    TrashPayment[]
+}
+
+model TrashSales {
+  id           Int           @id @default(autoincrement())
+  trashCustomer TrashCustomer @relation(fields: [trashCustomerId], references: [id])
+  trashCustomerId Int
+  amount       Float
+  note         String?
+  createdAt    DateTime
+}
+
+model TrashPayment {
+  id             Int          @id @default(autoincrement())
+  trashCustomer  TrashCustomer @relation(fields: [trashCustomerId], references: [id])
+  trashCustomerId Int
+  amountPaid     Float
+  paymentMethod  PaymentMethod
+  paidAt         DateTime
+  note           String?
+  recordedBy  AdminUser   @relation(fields: [adminUserId], references: [id])
+  adminUserId    Int
+}
+
 
 enum DueStatus {
   UNPAID
@@ -84,4 +123,9 @@ enum PaymentMethod {
 enum SalesStatus {
   PAID
   UNPAID
+}
+
+enum ActiveStatus {
+  ONLINE
+  EXPIRED
 }

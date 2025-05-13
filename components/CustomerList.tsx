@@ -1,9 +1,10 @@
 import { User } from "@/app/dashboard/customers/page";
 import Link from "next/link";
+import CustomerActions from "./CustomerActions";
 
 export default function CustomerList({ users }: { users: User[] }) {
   return (
-    <div className="w-full px-4">
+    <div className="w-full">
       {/* Large screen table */}
       <div className="hidden sm:block overflow-x-auto">
         <table className="w-full table-auto border-collapse text-sm rounded-lg overflow-hidden border">
@@ -13,8 +14,10 @@ export default function CustomerList({ users }: { users: User[] }) {
               <th className="text-left px-4 py-2">Name</th>
               <th className="text-left px-4 py-2">Address</th>
               <th className="text-left px-4 py-2">Contact</th>
+              <th className="text-left px-4 py-2 hidden lg:table-cell">Active Status</th>
               <th className="text-left px-4 py-2">Remaining Due</th>
-              <th className="text-left px-4 py-2">Due Date</th>
+              <th className="text-left px-4 py-2 hidden lg:table-cell">Due Date</th>
+              <th className="text-left px-4 py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -31,13 +34,17 @@ export default function CustomerList({ users }: { users: User[] }) {
                 </td>
                 <td className="px-4 py-2">{user.address || "-"}</td>
                 <td className="px-4 py-2">{user.contact}</td>
+                <td className="px-4 py-2 hidden lg:table-cell">{user.activeStatus === 'ONLINE' ? <span className="py-1 px-2 bg-green-500 text-white">{user.activeStatus}</span>: <span className="py-1 px-2 bg-red-400 text-white">{user.activeStatus}</span>}</td>
                 <td className="px-4 py-2 text-red-600 font-semibold">
                   Rs. {user.remainingDues.toFixed(2) ?? 0}
                 </td>
-                <td className="px-4 py-2">
+                <td className="px-4 py-2 hidden lg:table-cell">
                   {user.dueDate
                     ? new Date(user.dueDate).toLocaleDateString()
                     : "-"}
+                </td>
+                <td className="px-4 py-2">
+                    <CustomerActions customer = {user}/>
                 </td>
               </tr>
             ))}
@@ -69,7 +76,15 @@ export default function CustomerList({ users }: { users: User[] }) {
             </p>
             <p>
               <strong>Contact:</strong> {user.contact}
+
             </p>
+            <p>
+              <strong>Active Status:</strong> {user.activeStatus === 'ONLINE' ? <span className="px-2 py-0.5 text-xs bg-green-500 text-white">{user.activeStatus}</span>: <span className="py-0.5 px-2 text-xs bg-red-400 text-white">{user.activeStatus}</span>}
+            </p>
+            <p>
+              <strong>Address: </strong> {user.address}
+            </p>
+
           </div>
         ))}
       </div>

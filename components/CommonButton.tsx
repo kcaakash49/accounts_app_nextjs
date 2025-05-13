@@ -1,9 +1,15 @@
-"use client"
+"use client";
 
-export default function ({ label, func }: { label: string, func: any }) {
+const CommonButton = ({ label, bgColor, hoverColor, onClick } : {label: string, bgColor: string, hoverColor: string, onClick:()=> void}) => {
     return (
-        <div>
-            <button className="bg-blue-700 text-white p-4 rounded-3xl hover:bg-blue-500 cursor-pointer " onClick={func}>{label}</button>
-        </div>
-    )
-}
+      <button
+        onClick={onClick}
+        className={`${bgColor} hover:${hoverColor} text-white px-3 py-1 rounded-md text-sm cursor-pointer`}
+      >
+        {label}
+      </button>
+    );
+  };
+  
+  export default CommonButton;
+  

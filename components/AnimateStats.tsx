@@ -6,20 +6,29 @@ type Props = {
   label: string;
   value: number | string;
   delay?: number;
-  ringColor: string; // e.g., "#3b82f6"
+  ringColor: string;
 };
 
 export default function AnimatedStat({ label, value, delay = 0, ringColor }: Props) {
-  const radius = 85; // increased from 60
-  const strokeWidth = 14;
-  const size = 200;
+  // Define responsive size values
+  const size = 160; // Base (mobile)
+  const smSize = 200; // For sm screens
+  const lgSize = 240; // For lg+ screens
+
+  // Circle calculations based on base size
+  const radius = 70;
+  const strokeWidth = 12;
   const center = size / 2;
   const circumference = 2 * Math.PI * radius;
 
   return (
-    <div className="w-52 h-52 relative flex items-center justify-center">
-      {/* SVG Ring */}
-      <svg width={size} height={size}>
+    <div className="relative flex items-center justify-center w-40 h-40 sm:w-52 sm:h-52 lg:w-60 lg:h-60">
+      <svg
+        width={size}
+        height={size}
+        className="w-full h-full"
+        viewBox={`0 0 ${size} ${size}`}
+      >
         <circle
           cx={center}
           cy={center}
@@ -47,10 +56,13 @@ export default function AnimatedStat({ label, value, delay = 0, ringColor }: Pro
         />
       </svg>
 
-      {/* Centered Text */}
-      <div className="absolute text-center">
-        <div className="text-2xl font-bold text-gray-800 break-words">{value}</div>
-        <div className="text-base text-gray-500 mt-1">{label}</div>
+      <div className="absolute text-center px-2">
+        <div className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-800 break-words">
+          {value}
+        </div>
+        <div className="text-sm sm:text-base lg:text-lg text-gray-500 mt-1">
+          {label}
+        </div>
       </div>
     </div>
   );

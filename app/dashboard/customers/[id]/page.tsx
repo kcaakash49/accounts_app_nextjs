@@ -9,6 +9,7 @@ import TransactionLog from "@/components/TransactionLogs";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import AddFollowUp from "@/components/AddFollowUp";
+import CommonButton from "@/components/CommonButton";
 
 
 
@@ -125,43 +126,46 @@ export default function CustomerDetailPage() {
   return (
     <main className="w-full min-h-screen bg-gray-50">
       <section className="w-full bg-white rounded-xl shadow-md p-6 md:p-10">
-        
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Customer Details
           </h1>
 
           <div className="flex flex-col sm:flex-row gap-2">
-            <button
+               <CommonButton
+              label="Add Sales"
+              bgColor="bg-red-500"
+              hoverColor="bg-red-400"
               onClick={() => {
                 setIsPayement(false);
                 setShowModal(true);
                 setIsFollowUp(false);
               }}
-              className="bg-red-500 hover:bg-red-400 text-white px-3 py-1 rounded-md text-sm"
-            >
-              Add Sales
-            </button>
-            <button
+            />
+
+            <CommonButton
+              label="Add Payment"
+              bgColor="bg-green-600"
+              hoverColor="bg-green-500"
               onClick={() => {
                 setIsPayement(true);
                 setShowModal(true);
                 setIsFollowUp(false);
               }}
-              className="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded-md text-sm"
-            >
-              Add Payment
-            </button>
-            <button
+            />
+
+            <CommonButton
+              label="Add FollowUp"
+              bgColor="bg-yellow-600"
+              hoverColor="bg-yellow-500"
               onClick={() => {
                 setIsPayement(false);
                 setIsFollowUp(true);
                 setShowModal(true);
               }}
-              className="bg-yellow-600 hover:bg-yellow-500 text-white px-3 py-1 rounded-md text-sm"
-            >
-              Add FollowUp
-            </button>
+            />
+
           </div>
         </div>
 

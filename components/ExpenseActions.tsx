@@ -1,31 +1,30 @@
 
 
+
+
 "use client";
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Edit, Trash2 } from "lucide-react";
-import { deletePayment } from "@/action/deletePayment";
+
 import Modal from "./ModalComponent";
-import UpdatePayment from "./UpdatePayment";
-import { deleteSale } from "@/action/deleteSale";
+
 import UpdateSales from "./UpdateSales";
+import { ExpenseType } from "@/types/expense";
+import { deleteExpense } from "@/action/deleteExpense";
+import UpdateExpense from "./UpdateExpense";
 import Loading from "./Loading";
 
 
-type ActionType = {
-  payment?: any;
-  sale?: any;
-  isSales?: boolean,
-  // id: number
-}
-
-export default function PaymentActions({ payment, sale, isSales = false }: ActionType) {
-  const[loading,setLoading] = useState(false);
+export default function ExpenseActions({expense}: {expense: ExpenseType}) {
+  
   const [modal, showModal] = useState(false);
+  const [loading,setLoading] = useState(false);
+  
 
   const ifCanPerfromAction = () => {
-    const paymentDate = !isSales ? new Date(payment.paidAt) : new Date(sale.createdAt); // Replace `createdAt` if named differently
+    const paymentDate = new Date(expense.createdAt); // Replace `createdAt` if named differently
     const now = new Date();
     const diffInMs = now.getTime() - paymentDate.getTime();
     const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
@@ -37,27 +36,25 @@ export default function PaymentActions({ payment, sale, isSales = false }: Actio
   }
 
   const handleDelete = async () => {
-
     const ifActionCanBePerformed = ifCanPerfromAction();
     if (!ifActionCanBePerformed) {
-      alert("You cannot delete payments older than 2 days.");
-      return;
+        alert("You cannot delete expenses older than 2 days!!!")
+        return;
     }
 
-    const confirmed = confirm(`Delete this ${isSales ? 'Sale Record ?' : "Payment ?"}`);
+    const confirmed = confirm("Delete this expense record?");
     if (!confirmed) return;
 
-    try{
-      setLoading(true);
-      const res = isSales ? await deleteSale(sale.id) : await deletePayment(payment.id);
-      alert(res.success ? res.message : "Operation Failed");
-
+    try {
+        setLoading(true);
+        const res = await deleteExpense(expense.id);
+        alert(res.success ? res.message : "Operation Failed!!!")
     }catch(e){
-      alert("Failed to Delete");
-    }finally{
+        alert("Failed to Delete.!!!");
+    }finally {
       setLoading(false);
     }
-
+  
 
   };
 
@@ -65,7 +62,7 @@ export default function PaymentActions({ payment, sale, isSales = false }: Actio
     try {
       const ifActionCanBePerformed = ifCanPerfromAction();
       if (!ifActionCanBePerformed) {
-        alert("You cannot Update payments older than 2 days.");
+        alert("You cannot Update expenses older than 2 days.");
         return;
       }
       showModal(true);
@@ -75,18 +72,17 @@ export default function PaymentActions({ payment, sale, isSales = false }: Actio
   };
 
   if(loading){
-    return(
-      <div>
-        <Loading/>
-      </div>
+    return (
+      <div className="flex items-center justify-center"><Loading/></div>
     )
   }
+
   return (
     <div className="flex space-x-4">
       {/* Edit Button (Pencil Icon) */}
       <button
-        disabled={loading}
         onClick={handleUpdate}
+        disabled={loading}
         className="text-blue-600 hover:text-blue-800 transform hover:scale-110 transition-all duration-200"
       >
         <Edit
@@ -98,8 +94,8 @@ export default function PaymentActions({ payment, sale, isSales = false }: Actio
       {/* Delete Button (Trash Icon) */}
       <button
         onClick={handleDelete}
-        disabled={loading}
         className="text-red-600 hover:text-red-800 transform hover:scale-110 transition-all duration-200"
+        disabled={loading}
       >
         <Trash2
           size={20}
@@ -109,21 +105,15 @@ export default function PaymentActions({ payment, sale, isSales = false }: Actio
 
       <Modal isOpen={modal} onClose={() => showModal(false)}>
         {
-          isSales ? (
-          <div className="bg-red-200 p-6 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Update Sale</h2>
-            <UpdateSales sale={sale} />
+          
+          <div className="bg-amber-200 p-6 rounded-lg">
+            <h2 className="text-xl font-semibold mb-4">Update Expense</h2>
+                <UpdateExpense expense={expense}/>
   
           </div>
   
-          ): (
-          <div className="bg-red-200 p-6 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Update Payment</h2>
-            <UpdatePayment payment={payment} />
-  
-          </div>
-  
-          )
+        
+          
 
         }
       </Modal>
