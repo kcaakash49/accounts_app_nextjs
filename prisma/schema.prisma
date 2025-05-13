@@ -19,6 +19,7 @@ model Customer {
   id         Int       @id @default(autoincrement())
   name       String
   contact    String
+  secondContact String?
   address    String?
   activeStatus ActiveStatus @default(ONLINE)
   status     DueStatus  @default(UNPAID)

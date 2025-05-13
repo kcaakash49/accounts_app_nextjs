@@ -13,7 +13,9 @@ export async function addcustomer({name, contact, address,activeStatus,secondCon
                 name: name,
                 contact: contact,
                 address: address,
-                activeStatus: activeStatus
+                activeStatus: activeStatus,
+                secondContact: secondContact
+
             }
         })
         revalidatePath('/dashboard/customers')

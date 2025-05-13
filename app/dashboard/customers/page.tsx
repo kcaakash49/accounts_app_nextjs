@@ -17,6 +17,7 @@ export type User = {
     dueDate: Date | null;
     activeStatus: ActiveStatus;
     status: DueStatus;
+    secondContact: string | null;
 };
 
 

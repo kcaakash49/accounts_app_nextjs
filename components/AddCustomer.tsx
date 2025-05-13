@@ -89,7 +89,7 @@ export default function() {
           <input
             
             type='number'
-            value={contact}
+            value={secondContact}
             onChange={(e) => setSecondContact(e.target.value)}
             placeholder="Phone or Mobile"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"

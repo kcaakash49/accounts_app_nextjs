@@ -3,7 +3,7 @@
 import { User } from "@/app/dashboard/customers/page";
 import { useEffect, useState } from "react";
 import Loading from "./Loading";
-import { updateCustomer } from "@/action/updateCustomer";
+import { UpdataCustomerType, updateCustomer } from "@/action/updateCustomer";
 
 export default function UpdateCustomer({ customer }: { customer: User }) {
 
@@ -25,7 +25,8 @@ export default function UpdateCustomer({ customer }: { customer: User }) {
             activeStatus: data?.activeStatus,
             status: data?.status,
             address:data?.address,
-            customerId: data?.id
+            customerId: data?.id,
+            secondContact: data?.secondContact
         }
 
         try{
@@ -83,6 +84,20 @@ export default function UpdateCustomer({ customer }: { customer: User }) {
                         name='contact'
                         onChange={handleChange}
                         placeholder="Contact"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Additional Contact(optional)
+                    </label>
+                    <input
+                        
+                        type='number'
+                        value={data?.secondContact || ""}
+                        name='secondContact'
+                        onChange={handleChange}
+                        placeholder="Optional Contact"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>

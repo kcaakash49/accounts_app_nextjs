@@ -122,7 +122,7 @@ export default function CustomerDetailPage() {
   }
 
 
-
+  
   return (
     <main className="w-full min-h-screen bg-gray-50">
       <section className="w-full bg-white rounded-xl shadow-md p-6 md:p-10">
@@ -179,6 +179,13 @@ export default function CustomerDetailPage() {
             <p className="text-gray-500 text-sm">Contact</p>
             <p className="text-lg font-medium text-gray-800">{user.contact}</p>
           </div>
+            {
+              user.secondContact &&   <div>
+              <p className="text-gray-500 text-sm">Secondary Contact</p>
+              <p className="text-lg font-medium text-gray-800">{user.secondContact}</p>
+            </div>
+            }
+          
           <div>
             <p className="text-gray-500 text-sm">Address</p>
             <p className="text-lg text-gray-800">{user.address || "Not Provided"}</p>
@@ -213,6 +220,7 @@ export default function CustomerDetailPage() {
           }
 
         </div>
+
       </section>
 
       <TransactionLog logs={logs} />
