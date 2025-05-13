@@ -37,6 +37,10 @@ export default function() {
         if(res.success && res.message){
             setMessage(res.message);
             setError(null)
+            setTitle('');
+            setExpenseType('');
+            setNote("");
+            setAmount('');
         }else if(res.error){
             setError(res.error);
             setMessage(null)
