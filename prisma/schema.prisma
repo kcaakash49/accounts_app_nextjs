@@ -69,6 +69,8 @@ model Expenses {
   title      String
   expenseType String
   note        String
+  quantity    Int @default(1)
+  total       Float @default(0)
   recordedBy  AdminUser   @relation(fields: [adminUserId], references: [id])
   adminUserId Int
   createdAt   DateTime  @default(now())

@@ -10,7 +10,8 @@ type UpdateType = {
     title: string,
     expenseType: string,
     note: string,
-    expenseId: number
+    expenseId: number,
+    quantity:number
 }
 
 export async function updateExpense(updateData : UpdateType){
@@ -23,7 +24,9 @@ export async function updateExpense(updateData : UpdateType){
                 amount: updateData.amount,
                 title: updateData.title,
                 expenseType: updateData.expenseType,
-                note: updateData.note
+                note: updateData.note,
+                quantity: updateData.quantity,
+                total:updateData.amount * updateData.quantity
 
             }
         })

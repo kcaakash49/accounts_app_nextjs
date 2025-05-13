@@ -18,6 +18,7 @@ export default function() {
   const [title, setTitle] = useState('');
   const [expenseType, setExpenseType] = useState('');
   const [note, setNote] = useState('');
+  const [quantity,setQuantity] = useState('');
   const [loading, setLoading] = useState(false);
   const [message,setMessage] = useState<null | String>(null)
   const [error,setError] = useState<null | String>(null)
@@ -28,7 +29,8 @@ export default function() {
         title,
         expenseType,
         note,
-        amount: Number(amount)
+        amount: Number(amount),
+        quantity: Number(quantity)
     }
     try {
         setLoading(true);
@@ -41,6 +43,7 @@ export default function() {
             setExpenseType('');
             setNote("");
             setAmount('');
+            setQuantity('')
         }else if(res.error){
             setError(res.error);
             setMessage(null)
@@ -94,6 +97,20 @@ export default function() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="Amount"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Quantity
+          </label>
+          <input
+            required
+            type='number'
+            min={1}
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            placeholder="Quantity"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
           />
         </div>

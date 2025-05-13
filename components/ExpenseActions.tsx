@@ -106,7 +106,7 @@ export default function ExpenseActions({expense}: {expense: ExpenseType}) {
       <Modal isOpen={modal} onClose={() => showModal(false)}>
         {
           
-          <div className="bg-amber-200 p-6 rounded-lg">
+          <div className="bg-white p-6 rounded-2xl">
             <h2 className="text-xl font-semibold mb-4">Update Expense</h2>
                 <UpdateExpense expense={expense}/>
   

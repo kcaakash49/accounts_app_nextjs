@@ -16,6 +16,7 @@ interface FormType {
     expenseType: string,
     note: string,
     amount: number
+    quantity: number
 }
 
 export async function addExpense(formData: FormType) {
@@ -35,7 +36,9 @@ export async function addExpense(formData: FormType) {
                 amount: formData.amount,
                 expenseType: formData.expenseType,
                 note: formData.note,
-                adminUserId: id
+                adminUserId: id,
+                quantity: formData.quantity,
+                total: formData.quantity * formData.amount
             }
         })
 

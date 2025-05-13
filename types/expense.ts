@@ -13,6 +13,8 @@ export type ExpenseType = {
     title: string;
     expenseType: string;
     note: string;
+    quantity: number;
+    total: number;
     createdAt: Date;
     adminUserId: number;
     recordedBy: AdminType;

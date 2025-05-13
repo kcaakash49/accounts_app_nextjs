@@ -23,27 +23,31 @@ export default async function(){
               <table className="w-full table-auto border-collapse">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="p-2 text-left">#</th>
-                    <th className="p-2 text-left">Title</th>
-                    <th className="p-2 text-left">Type</th>
-                    <th className="p-2 text-left">Amount</th>
-                    <th className="p-2 text-left">Note</th>
-                    <th className="p-2 text-left">Recorded By</th>
-                    <th className="p-2 text-left">Created At</th>
-                    <th className="p-2 text-left">Actions</th>
+                    <th className="p-2 text-center">#</th>
+                    <th className="p-2 text-center">Title</th>
+                    <th className="p-2 text-center">Type</th>
+                    <th className="p-2 text-center">Amount</th>
+                    <th className="p-2 text-center">Note</th>
+                    <th className="p-2 text-center">Quantity</th>
+                    <th className="p-2 text-center hidden lg:table-cell">Recorded By</th>
+                    <th className="p-2 text-center">Created At</th>
+                    <th className="p-2 text-center">Total</th>
+                    <th className="p-2 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {res?.data?.map((expense : ExpenseType, index: number) => (
                     <tr key={expense.id} className="border-b dark:border-gray-700">
-                      <td className="p-2">{index + 1}</td>
-                      <td className="p-2">{expense.title}</td>
-                      <td className="p-2">{expense.expenseType}</td>
-                      <td className="p-2">Rs. {expense.amount}</td>
-                      <td className="p-2">{expense.note || "—"}</td>
-                      <td className="p-2">{expense.recordedBy?.name}</td>
-                      <td className="p-2">{new Date(expense.createdAt).toLocaleString()}</td>
-                      <td className="p-2"><ExpenseActions expense = {expense}/></td>
+                      <td className="p-2 text-center">{index + 1}</td>
+                      <td className="p-2 text-center">{expense.title}</td>
+                      <td className="p-2 text-center">{expense.expenseType}</td>
+                      <td className="p-2 text-center">Rs. {expense.amount}</td>
+                      <td className="p-2 text-center">{expense.note || "—"}</td>
+                      <td className="p-2 text-center">{expense.quantity}</td>
+                      <td className="p-2 text-center hidden lg:table-cell">{expense.recordedBy?.name}</td>
+                      <td className="p-2 text-center">{new Date(expense.createdAt).toLocaleString()}</td>
+                      <td className="p-2 text-center">{expense.total}</td>
+                      <td className="p-2 text-center"><ExpenseActions expense = {expense}/></td>
                     </tr>
                   ))}
                 </tbody>
@@ -52,7 +56,7 @@ export default async function(){
       
             {/* Card view for small screens */}
             <div className="block md:hidden space-y-4">
-              {res?.data?.map((expense : any) => (
+              {res?.data?.map((expense : ExpenseType) => (
                 <div
                   key={expense.id}
                   className="rounded-2xl shadow-md p-4 "
@@ -64,6 +68,9 @@ export default async function(){
                     <p><strong>Recorded By:</strong> Rs. {expense.recordedBy?.name}</p>
                     <p><strong>Note:</strong> Rs. {expense.note}</p>
                     <p><strong>Date:</strong> {new Date(expense.createdAt).toLocaleString()}</p>
+                    <p><strong>Quantity:</strong> {expense.quantity}</p>
+                    <p><strong>Total:</strong> {expense.total}</p>
+                    
                     <div className="mt-2">
                     <ExpenseActions expense={expense}/>
                     </div>

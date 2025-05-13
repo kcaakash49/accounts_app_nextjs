@@ -26,7 +26,8 @@ export default function({expense}: {expense: ExpenseType}){
             amount: data.amount,
             expenseType: data.expenseType,
             note: data.note,
-            expenseId: data.id
+            expenseId: data.id,
+            quantity: data.quantity
 
         }
 
@@ -47,10 +48,10 @@ export default function({expense}: {expense: ExpenseType}){
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const {name, value} = e.target;
 
-        const updateValue = name === "amount" ? parseFloat(value) : value;
+        const updateValue = (name === "amount" || name ==='quantity') ? parseFloat(value) : value;
 
         setData((prev:ExpenseType) => ({
-            ...data,
+            ...prev,
             [name]: updateValue
         }))
     }
@@ -90,6 +91,20 @@ export default function({expense}: {expense: ExpenseType}){
               name = 'amount'
               onChange={handleChange}
               placeholder="Amount"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Quantity
+            </label>
+            <input
+              required
+              type='number'
+              value={data.quantity || ""}
+              name = 'quantity'
+              onChange={handleChange}
+              placeholder="Quantity"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
