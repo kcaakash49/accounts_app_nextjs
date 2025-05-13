@@ -29,6 +29,7 @@ export default function() {
         setName('');
         setContact("");
         setAddress("")
+        setSecondContact("");
       }else if(res.error){
         setMessage(null);
         setError(res.error);

@@ -8,13 +8,27 @@ export async function addcustomer({name, contact, address,activeStatus,secondCon
     console.log(name,contact,address)
 
     try {
-        await client.customer.create({
+        const existingUser = await client.customer.findFirst({
+            where: {
+                OR: [{contact: contact}, {secondContact: contact}, {contact:secondContact},{secondContact:secondContact}]
+            }
+        })
+
+        if(existingUser){
+            return{
+                error: "Contact Already Exist"
+            }
+        }
+
+        const secondContacttoSave = secondContact.trim() === "" ? null : secondContact;
+
+        const user = await client.customer.create({
             data: {
                 name: name,
                 contact: contact,
                 address: address,
                 activeStatus: activeStatus,
-                secondContact: secondContact
+                secondContact: secondContacttoSave
 
             }
         })

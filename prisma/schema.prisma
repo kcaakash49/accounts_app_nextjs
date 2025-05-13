@@ -18,7 +18,7 @@ datasource db {
 model Customer {
   id         Int       @id @default(autoincrement())
   name       String
-  contact    String
+  contact    String     @unique
   secondContact String?
   address    String?
   activeStatus ActiveStatus @default(ONLINE)
@@ -79,7 +79,7 @@ model Expenses {
 model TrashCustomer {
   id          Int            @id @default(autoincrement())
   name        String
-  contact     String
+  contact     String 
   address     String?
   activeStatus ActiveStatus
   status      DueStatus

@@ -16,8 +16,10 @@ export type UpdataCustomerType = {
     secondContact: string | null;
 }
 export async function updateCustomer(updateData: UpdataCustomerType){
-    console.log(updateData);
+    
     try {
+
+        const secondContacttoSave = !updateData.secondContact || updateData.secondContact?.trim() === "" ? null : updateData.secondContact;
         await client.customer.update({
             where: {
                 id: updateData.customerId
@@ -28,7 +30,7 @@ export async function updateCustomer(updateData: UpdataCustomerType){
                 address: updateData.address,
                 status: updateData.status,
                 activeStatus: updateData.activeStatus,
-                secondContact: updateData.secondContact
+                secondContact: secondContacttoSave
             }
         })
 
