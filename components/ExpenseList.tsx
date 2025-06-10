@@ -64,12 +64,12 @@ export default async function(){
                   <h2 className="text-lg font-semibold mb-2">{expense.title}</h2>
                   <div className="text-sm text-gray-700">
                     <p><strong>Amount:</strong> Rs. {expense.amount}</p>
-                    <p><strong>Expense Type:</strong> Rs. {expense.expenseType}</p>
-                    <p><strong>Recorded By:</strong> Rs. {expense.recordedBy?.name}</p>
-                    <p><strong>Note:</strong> Rs. {expense.note}</p>
+                    <p><strong>Expense Type:</strong> {expense.expenseType}</p>
+                    <p><strong>Recorded By:</strong>  {expense.recordedBy?.name}</p>
+                    <p><strong>Note:</strong>  {expense.note}</p>
                     <p><strong>Date:</strong> {new Date(expense.createdAt).toLocaleString()}</p>
                     <p><strong>Quantity:</strong> {expense.quantity}</p>
-                    <p><strong>Total:</strong> {expense.total}</p>
+                    <p><strong>Total:</strong>Rs. {expense.total}</p>
                     
                     <div className="mt-2">
                     <ExpenseActions expense={expense}/>
