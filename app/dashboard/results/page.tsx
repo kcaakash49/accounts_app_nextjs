@@ -14,7 +14,7 @@ export default function () {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5; // Adjust as needed
+    const itemsPerPage = 20; // Adjust as needed
 
     useEffect(() => {
         const searchQuery = searchParams.get("query");
