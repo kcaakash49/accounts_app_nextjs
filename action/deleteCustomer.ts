@@ -60,7 +60,7 @@ export async function deleteCustomer(id: number) {
     revalidatePath("/dashboard/customers");
     revalidatePath("/dashboard/payment-history");
     revalidatePath("/dashboard/sales");
-    revalidatePath("/results");
+    revalidatePath("/dashboard/results");
 
     return {
         success: true,

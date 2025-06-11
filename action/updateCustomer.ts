@@ -38,7 +38,7 @@ export async function updateCustomer(updateData: UpdataCustomerType){
         revalidatePath("/dashboard/payment-history");
         revalidatePath("/dashboard/sales");
         revalidatePath("/dashboard")
-        revalidatePath("/results")
+        revalidatePath("/dashboard/results")
 
         return {
             success: true,
