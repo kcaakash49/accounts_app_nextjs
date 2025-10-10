@@ -4,13 +4,35 @@ import { User } from "@/app/dashboard/customers/page";
 import { useEffect, useState } from "react";
 import Loading from "./Loading";
 import { UpdataCustomerType, updateCustomer } from "@/action/updateCustomer";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
-export default function UpdateCustomer({ customer }: { customer: User }) {
+type CustomerProps = {
+    customer: User;
+    onClose : () => void
+}
+
+export default function UpdateCustomer({ customer, onClose }: CustomerProps) {
 
     const [data, setData] = useState<any>({});
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState<null | string>(null);
-    const [error, setError] = useState<null|string>(null);
+    const queryClient = useQueryClient();
+    const { mutate, isPending } = useMutation({
+        mutationFn: updateCustomer,
+        onSuccess: (result) => {
+            
+            toast.success(result.message || "User Updated Successfully");
+            queryClient.invalidateQueries({
+                queryKey: ["searchResult"]
+            })
+            queryClient.invalidateQueries({
+                queryKey: ["data-detail", data.id.toString()]
+            })
+            onClose();
+
+        }, onError: (error) => {
+            toast.error(error.message);
+        } 
+    })
 
 
     useEffect(() => {
@@ -28,18 +50,8 @@ export default function UpdateCustomer({ customer }: { customer: User }) {
             customerId: data?.id,
             secondContact: data?.secondContact
         }
+        mutate(updateData);
 
-        try{
-            setLoading(true);
-            const res = await updateCustomer(updateData);
-            setMessage(res.success && res.message ? res.message : null);
-            setError(!res.success ? "Failed to Update" : null);
-        }catch(e){
-            setError("Internal Server Error!")
-            setMessage(null);
-        }finally {
-            setLoading(false);
-        }
     }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -81,10 +93,11 @@ export default function UpdateCustomer({ customer }: { customer: User }) {
                         required
                         type='number'
                         value={data?.contact || ""}
+                        disabled
                         name='contact'
                         onChange={handleChange}
                         placeholder="Contact"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 cursor-not-allowed"
                     />
                 </div>
                 <div>
@@ -150,23 +163,12 @@ export default function UpdateCustomer({ customer }: { customer: User }) {
                 <div className="md:col-span-2">
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={isPending}
                         className="bg-red-600 hover:bg-red-900 text-white font-semibold px-6 py-3 rounded-lg transition w-full md:w-auto cursor-pointer"
                     >
-                        {loading ? <Loading /> : 'Update Customer'}
+                        {isPending ? <Loading /> : 'Update Customer'}
                     </button>
                 </div>
-
-                {message && (
-                    <p className="text-green-600 md:col-span-2 mt-2">
-                        ✅ Customer Updated Successfully !!!
-                    </p>
-                )}
-                {error && (
-                    <p className="text-red-600 md:col-span-2 mt-2">
-                        {error}
-                    </p>
-                )}
             </form>
         </div>
     )

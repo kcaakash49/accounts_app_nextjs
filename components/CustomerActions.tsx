@@ -13,30 +13,36 @@ import { User } from "@/app/dashboard/customers/page";
 import { deleteCustomer } from "@/action/deleteCustomer";
 import Loading from "./Loading";
 import UpdateCustomer from "./UpdateCustomer";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 
 
-export default function CustomerActions({customer}: {customer:User}) {
+export default function CustomerActions({customer}: any) {
   
   const [modal, showModal] = useState(false);
   const[loading,setLoading] = useState(false);
 
+  const router = useRouter();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: deleteCustomer,
+    onSuccess: (result) => {
+      toast.success(result.message || "User Deleted Successfully !!!")
+      router.replace("/dashboard/customers")
+    },
+    onError: (error) => {
+      toast.error(error.message || "Couldn't delete Customer!!!");
+    }
+  })
+
   
 
   const handleDelete = async () => {
-    const isConfirmed = confirm("Do you really wan to delete the customer record?");
+    const isConfirmed = confirm("Do you really want to delete the customer record?");
     if(!isConfirmed) return;
-
-    setLoading(true);
-    try{
-        const res = await deleteCustomer(customer.id);
-        alert(res.success ? res.message : "Failed to Delelte!!");
-    }catch{
-      alert("Internal server Error");
-    }finally{
-      setLoading(false);
-    }
-  
+    mutate(customer.id);
 
   };
 
@@ -45,11 +51,11 @@ export default function CustomerActions({customer}: {customer:User}) {
       showModal(true);
     }catch(e){
       showModal(false);
-      alert("Something happened")
+      toast.error("Couldn't open update page!!!")
     }
   };
 
-  if (loading){
+  if (isPending){
     return (
       <div><Loading/></div>
     )
@@ -72,7 +78,7 @@ export default function CustomerActions({customer}: {customer:User}) {
       {/* Delete Button (Trash Icon) */}
       <button
         onClick={handleDelete}
-        disabled={loading}
+        disabled={isPending}
         className="text-red-600 hover:text-red-800 transform hover:scale-110 transition-all duration-200"
       >
         <Trash2
@@ -86,13 +92,9 @@ export default function CustomerActions({customer}: {customer:User}) {
           
           <div className="bg-amber-200 p-6 rounded-lg">
             <h2 className="text-xl font-semibold mb-4">Update Customer</h2>
-                <UpdateCustomer customer={customer}/>
+                <UpdateCustomer customer={customer} onClose={() => showModal(false)}/>
   
           </div>
-  
-        
-          
-
         }
       </Modal>
     </div>

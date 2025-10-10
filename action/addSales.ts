@@ -57,9 +57,9 @@ export async function addSales(formData: SaleSchema) {
     revalidatePath("/dashboard/sales")
     return { message: "Operation Successful" };
   } catch (e) {
-    return {
-      error: "Something Happened",
-      err: e,
-    };
+    if (e instanceof Error){
+      throw e;
+    }
+    throw new Error("Something Happened!!!")
   }
 }

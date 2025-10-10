@@ -4,6 +4,9 @@ import { addcustomer } from '@/action/addcustomer';
 import { useState } from 'react';
 import Loading from './Loading';
 import { ActiveStatus } from '@prisma/client';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
+
 
 export default function() {
   const [name, setName] = useState('');
@@ -15,32 +18,22 @@ export default function() {
   const [error,setError] = useState<null | String>(null)
   const [activeStatus, setActiveStatus] = useState<ActiveStatus>('ONLINE');
 
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: addcustomer,
+    onSuccess: (data) => {
+      toast.success(data.message || "Successfully Added!!!")
+      
+    },
+    onError: (error) => {
+      toast.error(error.message || "Couldn't add user!!!")
+    }
+  })
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    
-
-    try {
-      const res = await addcustomer({name, address, contact, activeStatus,secondContact});
-      
-      if(res.message){
-        setMessage(res.message);
-        setError(null);
-        setName('');
-        setContact("");
-        setAddress("")
-        setSecondContact("");
-      }else if(res.error){
-        setMessage(null);
-        setError(res.error);
-      }
-    } catch (err) {
-        setError("Internal Server Error")
-        setMessage(null)
-    } finally {
-      setLoading(false);
-    }
-  };
+    mutate({name,address,contact,activeStatus,secondContact});
+  }
 
   return (
     <div className="w-full h-full bg-white overflow-y-auto">

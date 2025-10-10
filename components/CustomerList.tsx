@@ -15,9 +15,6 @@ export default function CustomerList({ users }: { users: User[] }) {
               <th className="text-left px-4 py-2">Address</th>
               <th className="text-left px-4 py-2">Contact</th>
               <th className="text-left px-4 py-2 hidden lg:table-cell">Active Status</th>
-              <th className="text-left px-4 py-2">Remaining Due</th>
-              <th className="text-left px-4 py-2 hidden lg:table-cell">Due Date</th>
-              <th className="text-left px-4 py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -35,17 +32,7 @@ export default function CustomerList({ users }: { users: User[] }) {
                 <td className="px-4 py-2">{user.address || "-"}</td>
                 <td className="px-4 py-2">{user.contact}</td>
                 <td className="px-4 py-2 hidden lg:table-cell">{user.activeStatus === 'ONLINE' ? <span className="py-1 px-2 bg-green-500 text-white">{user.activeStatus}</span>: <span className="py-1 px-2 bg-red-400 text-white">{user.activeStatus}</span>}</td>
-                <td className="px-4 py-2 text-red-600 font-semibold">
-                  Rs. {user.remainingDues.toFixed(2) ?? 0}
-                </td>
-                <td className="px-4 py-2 hidden lg:table-cell">
-                  {user.dueDate
-                    ? new Date(user.dueDate).toLocaleDateString()
-                    : "-"}
-                </td>
-                <td className="px-4 py-2">
-                    <CustomerActions customer = {user}/>
-                </td>
+               
               </tr>
             ))}
           </tbody>
@@ -61,9 +48,6 @@ export default function CustomerList({ users }: { users: User[] }) {
           >
             <div className="flex justify-between items-center mb-2">
               <span className="font-semibold">#{index + 1}</span>
-              <span className="text-red-600 font-semibold">
-                Rs. {user.remainingDues.toFixed(2) ?? 0}
-              </span>
             </div>
             <p>
               <strong>Name:</strong>{" "}

@@ -30,19 +30,21 @@ const TransactionLog: React.FC<Props> = ({ logs }) => {
         {logs.map((log, index) => (
           <div
             key={index}
-            className={`border-l-4 pl-4 py-2 ${
-              log.type === "sale" ? "border-red-500" : "border-green-500"
-            }`}
+            className={`border-l-4 pl-4 py-2 ${log.type === "sale" ? "border-red-500" : "border-green-500"
+              }`}
           >
             <p className="text-sm text-gray-500">
-              {log.date.toLocaleDateString("en-IN", {
+              {log.date.toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
                 year: "numeric",
-                month: "long",
-                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
               })}
             </p>
             <p className="text-md font-medium">
-              {log.type === "sale" ? "Sales Added" : "Payment Received"} -  
+              {log.type === "sale" ? "Sales Added" : "Payment Received"} -
               Rs. {log.amount.toFixed(2)}
             </p>
             {log.description && (

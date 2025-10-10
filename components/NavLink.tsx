@@ -13,6 +13,7 @@ export default function NavLink({
   return (
     <Link
       href={href}
+      prefetch = {true}
       onClick={onClick}
       className="block px-4 py-2 rounded hover:bg-blue-400 transition text-white font-medium"
     >

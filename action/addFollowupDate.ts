@@ -1,8 +1,13 @@
 "use server"
 
 import client from '@/db';
+import { revalidatePath } from 'next/cache';
 
-export async function addFollowupDate(followUpDate : Date, userId: number){
+interface typeDate {
+    followUpDate: Date;
+    userId: number;
+}
+export async function addFollowupDate({followUpDate, userId}: typeDate){
     try {
         const customer = await client.customer.update({
             where: {
@@ -12,6 +17,7 @@ export async function addFollowupDate(followUpDate : Date, userId: number){
             }
         })
 
+        revalidatePath("/dashboard");
         return {
             success: true,
             customer,
@@ -20,9 +26,6 @@ export async function addFollowupDate(followUpDate : Date, userId: number){
 
     }catch(e){  
         console.error(e);
-        return {
-            success: false,
-            error: "Operation Unsuccessful !!!"
-        }
+        throw new Error("Something Happened!!!")
     }
 }

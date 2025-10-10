@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Suspense } from "react";
-import Loading from "./loading";
+import Providers from "./providers";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "Basic Accounts",
 };
 
+export const revalidate = 60;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,9 +29,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Suspense fallback={<Loading />}>
+        <Providers>
           {children}
-        </Suspense>
+
+        </Providers>
+        <Toaster duration={1500} richColors position="top-center"/>
+        
       </body>
     </html>
   );

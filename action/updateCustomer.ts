@@ -47,8 +47,6 @@ export async function updateCustomer(updateData: UpdataCustomerType){
 
     }catch(e){
         console.error(e)
-        return {
-            success: false
-        }
+        throw new Error("Update Unsuccessful")
     }
 }

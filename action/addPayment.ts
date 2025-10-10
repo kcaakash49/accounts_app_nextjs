@@ -21,9 +21,7 @@ interface DecodedSchema extends JwtPayload{
 export async function addPayment(formData : PayForm){
     const token = (await cookies()).get("token")?.value;
     if(!token){
-        return {
-            error: "UnAuthorized"
-        }
+        throw new Error("Unauthorized!!!")
     }
     try {
         const decoded= jwt.verify(token, process.env.JWT_SECRET!);
@@ -49,14 +47,12 @@ export async function addPayment(formData : PayForm){
             })
         }
 
-        return ({
-            error: "Invalid Token"
-        })
+        throw new Error("Payment Unsuccessful!!!")
 
     }catch(e){
-        return {
-            error: "Something Happened",
-            err: e
+        if (e instanceof Error){
+            throw e
         }
+        throw new Error("Something Happened!!!");
     }
 }

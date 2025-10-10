@@ -2,57 +2,52 @@
 import { addSales } from "@/action/addSales";
 import { useState } from "react";
 import Loading from "./Loading";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 
 interface AddDueFormProps {
   userID: number;
-  setRefreshKey: () => void;
+  onClose: () => void;
 }
 
 type PaymentStatus = "PAID" | "UNPAID";
 type PaymentMethod = 'CASH' | 'ONLINE';
 
-export default function AddSalesForm({ userID, setRefreshKey }: AddDueFormProps) {
+export default function AddSalesForm({ userID, onClose }: AddDueFormProps) {
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [isPaid, setIsPaid] = useState<PaymentStatus>('UNPAID');
-  const [message, setMessage] = useState<null | String>(null);
-  const [error, setError] = useState<null | String>(null);
-  const [paymentMethod,setPaymentMethod] = useState<PaymentMethod>('CASH')
-  const [loading,setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH')
+  
+
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: addSales,
+    onSuccess: (data) => {
+      toast.success(data.message || "Sales Added Successfully!!!")
+      queryClient.invalidateQueries({
+        queryKey: ["data-detail", userID.toString()]
+      })
+      onClose();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Operation Failed!!!");
+    }
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      setLoading(true);
-      const saleData = {
-        amount: amount,
-        customerId: userID,
-        note: note,
-        paymentStatus: isPaid,
-        paymentMethod: paymentMethod
-      }
-
-      const res = await addSales(saleData);
-      if (res.message) {
-        setMessage(res.message);
-        setError(null);
-        setRefreshKey();
-      } else if (res.error) {
-        setError(res.error)
-        setMessage(null)
-        console.error(res.err)
-      }
-
-    } catch (e) {
-      setError("Internal Server Error")
-      setMessage(null)
-    }finally{
-      setLoading(false);
+    const saleData = {
+      amount: amount,
+      customerId: userID,
+      note: note,
+      paymentStatus: isPaid,
+      paymentMethod: paymentMethod
     }
 
-
-
+    mutate(saleData);
   };
 
   return (
@@ -84,21 +79,21 @@ export default function AddSalesForm({ userID, setRefreshKey }: AddDueFormProps)
         </div>
         {
           isPaid === 'PAID' && <div>
-          <label className="block">Payment Method</label>
-          <div>
-          <select
-           
-            value={paymentMethod}
-            className="w-full border rounded px-2 py-1"
-            onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-          >
-            <option value="CASH">CASH</option>
-            <option value="ONLINE">ONLINE</option>
-          </select>
-  
+            <label className="block">Payment Method</label>
+            <div>
+              <select
+
+                value={paymentMethod}
+                className="w-full border rounded px-2 py-1"
+                onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+              >
+                <option value="CASH">CASH</option>
+                <option value="ONLINE">ONLINE</option>
+              </select>
+
+            </div>
           </div>
-        </div>
-  
+
         }
       </div>
 
@@ -111,13 +106,11 @@ export default function AddSalesForm({ userID, setRefreshKey }: AddDueFormProps)
         />
       </div>
 
-      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded" disabled={loading}>
+      <button type="submit" className={`bg-blue-600 text-white px-4 py-2 rounded  ${isPending ? ' cursor-progress' : "cursor-pointer"}`} disabled={isPending}>
         {
-          loading ? <Loading/> : 'Add Sales'
+          isPending ? <Loading /> : 'Add Sales'
         }
       </button>
-      {message && <div className="p-4 text-center bg-green-600 text-white">{message}</div>}
-      {error && <div className="p-4 text-center bg-red-600 text-white">{error}</div>}
     </form>
   );
 }

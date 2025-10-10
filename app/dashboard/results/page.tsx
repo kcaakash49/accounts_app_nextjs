@@ -2,7 +2,10 @@
 
 "use client";
 
+import { searchCustomer } from "@/action/searchCustomer";
+import Loading from "@/app/loading";
 import CustomerList from "@/components/CustomerList";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -10,63 +13,38 @@ import { useEffect, useState } from "react";
 
 export default function () {
 
-    const [data, setData] = useState([]);
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 20; // Adjust as needed
+    const searchKey = searchParams.get("query");
+    const queryClient = useQueryClient();
+
+    const { data, isLoading } = useQuery({
+        queryKey: ["searchResult"],
+        queryFn: () => searchCustomer(searchKey!),
+        staleTime: 10 * 60 * 1000,
+        refetchOnMount: true,
+        refetchOnWindowFocus: true
+    })
 
     useEffect(() => {
-        const searchQuery = searchParams.get("query");
-
-        if (!searchQuery) {
+        if (!searchKey) {
             router.push("/dashboard")
             return
         }
 
-        const storedResult = sessionStorage.getItem("searchResults");
-        if (storedResult) {
-            setData(JSON.parse(storedResult))
-        } else {
-            router.push("/dashboard")
-        }
+    }, [searchKey])
 
-    }, [searchParams])
+    console.log("Search Result", data);
 
-    const totalPages = Math.ceil(data.length / itemsPerPage);
-    const paginatedData = data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    if (isLoading) {
+        return <Loading/>
+    }
+    
+    if(!data?.customers) return <div className="flex items-center justify-center ">No User Found!!!</div>;
+    
     return (
         <div>
-            
-            <CustomerList users={paginatedData}/>
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-                <div className="flex justify-center space-x-4 mt-4">
-                    {/* Previous Button */}
-                    {currentPage > 1 && (
-                        <button
-                            onClick={() => setCurrentPage((prev) => prev - 1)}
-                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-                        >
-                            Previous
-                        </button>
-                    )}
-
-                    {/* Page Indicator */}
-                    <span className="px-4 py-2 border rounded">{`Page ${currentPage} of ${totalPages}`}</span>
-
-                    {/* Next Button */}
-                    {currentPage < totalPages && (
-                        <button
-                            onClick={() => setCurrentPage((prev) => prev + 1)}
-                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-                        >
-                            Next
-                        </button>
-                    )}
-                </div>
-            )}
+            <CustomerList users={data.customers}/>
 
         </div>
 

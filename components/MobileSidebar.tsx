@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Menu } from "lucide-react"; // optional: install lucide-react for icons
 import NavLink from "./NavLink";
+import LogoutButton from "./LogOutButton";
 
 export default function MobileSidebar() {
   const [open, setOpen] = useState(false);
@@ -20,6 +21,7 @@ export default function MobileSidebar() {
           <NavLink href="/dashboard/payment-history" onClick = {handleClose}>Payment History</NavLink>
           <NavLink href="/dashboard/sales" onClick = {handleClose}>Sales</NavLink>
           <NavLink href="/dashboard/expenses" onClick={handleClose}>Expenses</NavLink>
+          <LogoutButton/>
         </div>
       )}
     </div>

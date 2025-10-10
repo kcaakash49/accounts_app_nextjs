@@ -3,6 +3,7 @@
 import { getCustomer } from "@/action/getCustomer";
 import AddCustomer from "@/components/AddCustomer";
 import CustomerList from "@/components/CustomerList";
+import LinkButton from "@/components/LinkButton";
 import Navbar from "@/components/Navbar";
 import { ActiveStatus, DueStatus } from "@prisma/client";
 import Link from "next/link";
@@ -13,7 +14,6 @@ export type User = {
     contact: string;
     address: string | null;
     createdAt: Date;
-    remainingDues: number;
     dueDate: Date | null;
     activeStatus: ActiveStatus;
     status: DueStatus;
@@ -33,27 +33,20 @@ type UserSchema =
 export default async function () {
     try {
         const users: UserSchema = await getCustomer();
-         
-
         if (!users?.users || users?.users.length === 0) {
             return (
                 <div className="flex flex-col h-full items-center justify-center">
-                    <AddCustomer/>
+                    <AddCustomer />
                     <div>No Customer Record</div>
                 </div>
 
             )
         }
-
-        
-
-
-
         return (
             <div>
-                <AddCustomer/>
+                <LinkButton href="/dashboard/add-customer" label="Add Customer"/>
                 <div className="mt-5 md:sm-10">
-                <CustomerList users={users?.users}/>
+                    <CustomerList users={users?.users} />
 
                 </div>
 

@@ -67,9 +67,9 @@ export async function deleteCustomer(id: number) {
         message: "Customer Deleted Successfully!"
     }
   } catch (e) {
-    console.error(e);
-    return {
-      success: false,
-    };
-  }
+    if (e instanceof Error){
+      throw e;
+    }
+    throw new Error("Something Happened");
+}
 }

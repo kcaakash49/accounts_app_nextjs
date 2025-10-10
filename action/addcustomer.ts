@@ -15,9 +15,7 @@ export async function addcustomer({name, contact, address,activeStatus,secondCon
         })
 
         if(existingUser){
-            return{
-                error: "Contact Already Exist"
-            }
+            throw new Error("User Already Exist!!!");
         }
 
         const secondContacttoSave = secondContact.trim() === "" ? null : secondContact;
@@ -32,17 +30,17 @@ export async function addcustomer({name, contact, address,activeStatus,secondCon
 
             }
         })
-        revalidatePath('/dashboard/customers')
+        // revalidatePath('/dashboard/customers')
         revalidatePath("/dashboard")
 
         return {
             message: "Customer Added Successfully!!!"
         }
     }catch(e){
-        return {
-            error:"Something Happened!!!",
-            err: e
+        if (e instanceof Error){
+            throw e
         }
+        throw new Error("Internal Server Error!!!")
     }
 
 }

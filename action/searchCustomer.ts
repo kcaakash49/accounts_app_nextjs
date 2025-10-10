@@ -3,6 +3,7 @@
 import client from "@/db";
 
 export async function searchCustomer(search: string) {
+  console.log("Fetching User")
   try {
     const customers = await client.customer.findMany({
       where: {
@@ -17,34 +18,30 @@ export async function searchCustomer(search: string) {
       },
     });
 
-    const formattedCustomers = customers.map((user) => {
-      const totalSales = user?.sales?.reduce((sum, sale) => {
-        return sum + sale.amount;
-      }, 0);
+    // const formattedCustomers = customers.map((user) => {
+    //   const totalSales = user?.sales?.reduce((sum, sale) => {
+    //     return sum + sale.amount;
+    //   }, 0);
 
-      const totalPayment = user?.payments?.reduce((sum, payment) => {
-        return sum + payment.amountPaid;
-      }, 0);
+    //   const totalPayment = user?.payments?.reduce((sum, payment) => {
+    //     return sum + payment.amountPaid;
+    //   }, 0);
 
-      const remainingDues = totalSales - totalPayment;
+    //   const remainingDues = totalSales - totalPayment;
 
-      const serializedUser = {
-        ...user,
-        remainingDues
-      };
-      return serializedUser;
-    });
+    //   const serializedUser = {
+    //     ...user,
+    //     remainingDues
+    //   };
+    //   return serializedUser;
+    // });
 
     return {
       success: true,
       message: "Search Successful",
-      customers: formattedCustomers,
+      customers
     };
   } catch (e) {
-    console.log(e);
-    return {
-      error: "Something Went Wrong",
-      success: false,
-    };
+    throw new Error("Something Happened")
   }
 }
