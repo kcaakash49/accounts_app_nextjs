@@ -32,7 +32,7 @@ export default function PaymentsList({ data }: any) {
                 <td className="p-2">Rs. {payment.amountPaid}</td>
                 <td className="p-2">{payment.paymentMethod}</td>
                 <td className="p-2">{payment.note || "—"}</td>
-                <td className="p-2">{new Date(payment.paidAt).toLocaleString()}</td>
+                <td className="p-2">{new Date(payment.paidAt).toLocaleString("en-US", { timeZone: "Asia/Kathmandu" })}</td>
                 <td className="p-2">{payment?.recordedBy?.name}</td>
                 <td className="p-2">
                   <PaymentActions payment = {payment}/>

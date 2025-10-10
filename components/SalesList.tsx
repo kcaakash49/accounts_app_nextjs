@@ -55,7 +55,7 @@ export default function ({ sales }: { sales: SaleSchema[] }) {
               <td className="px-4 py-2 border">{sale.amount}</td>
               <td className="px-4 py-2 border hidden md:table-cell">{sale.note}</td>
               <td className="px-4 py-2 border hidden md:table-cell">
-                {new Date(sale.createdAt).toLocaleString()}
+                {new Date(sale.createdAt).toLocaleString("en-US", { timeZone: "Asia/Kathmandu" })}
               </td>
               <td className="px-4 py-2 border hidden md:table-cell"><PaymentActions isSales={true} sale={sale} /></td>
             </tr>
