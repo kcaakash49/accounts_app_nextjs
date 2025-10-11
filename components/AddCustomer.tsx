@@ -27,6 +27,7 @@ export default function() {
     mutationFn: addcustomer,
     onSuccess: (data) => {
       toast.success(data.message || "Successfully Added!!!")
+      resetForm();
       
     },
     onError: (error) => {

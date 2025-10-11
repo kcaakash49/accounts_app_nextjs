@@ -23,7 +23,7 @@ export default function DailyStats() {
     }
 
     if (data?.success) {
-        console.log(data);
+       
         const { salesReport, paymentReport, expenseReport,totals } = data;
     
         return (

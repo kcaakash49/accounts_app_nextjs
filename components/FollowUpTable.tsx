@@ -16,6 +16,9 @@ interface Customer {
   contact: string;
   secondContact: string | null;
   address: string | null;
+  totalSales: number;
+  totalPayments: number;
+  remainingDue: number
 }
 
 interface CustomerTableProps {
@@ -72,24 +75,27 @@ export default function FollowUpTable({ customers }: CustomerTableProps) {
         Customer Follow-Ups
       </h1>
       <div className="hidden sm:block overflow-x-auto">
-        <table className="min-w-full border border-gray-300 divide-y divide-gray-200">
+        <table className="min-w-full border text-sm border-gray-300 divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-4 py-2 text-left text-gray-700">Name</th>
-              <th className="px-4 py-2 text-left text-gray-700">Contact</th>
-              <th className="px-4 py-2 text-left text-gray-700">Secondary Contact</th>
-              <th className="px-4 py-2 text-left text-gray-700">Address</th>
-              <th className="px-4 py-2 text-left text-gray-700">Action</th>
+              <th className="px-4 py-2 text-left border text-gray-700">Name</th>
+              <th className="px-4 py-2 text-left border text-gray-700">Contact</th>
+              <th className="px-4 py-2 text-left border text-gray-700">Secondary Contact</th>
+              <th className="px-4 py-2 text-left border text-gray-700">Address</th>
+              <th className="px-4 py-2 text-left border text-gray-700">Due</th>
+              <th className="px-4 py-2 text-left border text-gray-700">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {customers.map((customer) => (
+               
               <tr key={customer.id}>
-                <td className="px-4 py-2">{customer.name}</td>
-                <td className="px-4 py-2">{customer.contact}</td>
-                <td className="px-4 py-2">{customer.secondContact || "-"}</td>
-                <td className="px-4 py-2">{customer.address || "-"}</td>
-                <td className="px-4 py-2 relative">
+                <td className="px-4 py-2 border">{customer.name}</td>
+                <td className="px-4 py-2 border">{customer.contact}</td>
+                <td className="px-4 py-2 border">{customer.secondContact || "-"}</td>
+                <td className="px-4 py-2 border">{customer.address || "-"}</td>
+                <td className="px-4 py-2 border">{customer.remainingDue}</td>
+                <td className="px-4 py-2 border relative">
                   <button
                     onClick={(e) => toggleDropdown(e, customer.id)}
                     className="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100"

@@ -5,7 +5,7 @@ import { fetchAdminInfo } from "@/action/fetchAdminInfo";
 
 export default async function FollowUp() {
     const result = await followUp();
-    const userInfo = await fetchAdminInfo();
+
     if (result.success) {
         return (
             <FollowUpTable customers={result.customers || []}/>
