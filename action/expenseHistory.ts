@@ -8,24 +8,19 @@ export async function expenseHistory(){
     try {
         const data = await client.expenses.findMany({
             include: {
-                recordedBy: true
+                recordedBy: {
+                    select: {
+                        id: true, name: true
+                    }
+                }
             },orderBy: {
                 createdAt: 'desc'
             }
         })
-
-        const sanitizedData = data.map(expense => {
-            const { password, ...safeUser } = expense.recordedBy || {};
-            return {
-                ...expense,
-                recordedBy: safeUser
-            };
-        });
-
         
         return {
             success: true,
-            data: sanitizedData
+            data
         };
     }catch(e){
         console.log(e);

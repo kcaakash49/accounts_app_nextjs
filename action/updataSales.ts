@@ -35,7 +35,8 @@ export async function updateSales(toUpdateData: UpdateDataType){
     }catch(e){
         console.error(e);
         return {
-            success: false
+            success: false,
+            error: "Operation Failed!!!"
         }
 
     }

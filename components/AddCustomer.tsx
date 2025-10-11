@@ -12,12 +12,16 @@ export default function() {
   const [name, setName] = useState('');
   const [contact, setContact] = useState('');
   const [address, setAddress] = useState('');
-  const [loading, setLoading] = useState(false);
   const [secondContact, setSecondContact] = useState('');
-  const [message,setMessage] = useState<null | String>(null)
-  const [error,setError] = useState<null | String>(null)
   const [activeStatus, setActiveStatus] = useState<ActiveStatus>('ONLINE');
 
+  const resetForm = () => {
+    setName('');
+    setContact("");
+    setAddress('');
+    setSecondContact('');
+    setActiveStatus('ONLINE');
+  }
 
   const { mutate, isPending } = useMutation({
     mutationFn: addcustomer,
@@ -55,8 +59,7 @@ export default function() {
             value={name}
             onChange={(e) => {
               setName(e.target.value);
-              setMessage(null);
-              setError(null);
+              
             }}
             placeholder="Customer name"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
@@ -121,23 +124,13 @@ export default function() {
         <div className="md:col-span-2">
           <button
             type="submit"
-            disabled={loading}
+            disabled={isPending}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition w-full md:w-auto cursor-pointer"
           >
-            {loading ? <Loading/> : 'Add Customer'}
+            {isPending ? <Loading/> : 'Add Customer'}
           </button>
         </div>
 
-        {message && (
-          <p className="text-green-600 md:col-span-2 mt-2">
-            ✅ Customer added successfully!
-          </p>
-        )}
-        {error && (
-          <p className="text-red-600 md:col-span-2 mt-2">
-            {error}
-          </p>
-        )}
       </form>
     </div>
   );

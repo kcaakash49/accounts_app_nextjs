@@ -24,7 +24,8 @@ export async function deletePayment(id:number){
     }catch(e){
         console.error(e);
         return {
-            success: false
+            success: false,
+            error: "Somethign Happened!!!"
         }
     }
 }

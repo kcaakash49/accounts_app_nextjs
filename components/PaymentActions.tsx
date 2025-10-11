@@ -11,6 +11,8 @@ import UpdatePayment from "./UpdatePayment";
 import { deleteSale } from "@/action/deleteSale";
 import UpdateSales from "./UpdateSales";
 import Loading from "./Loading";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 
 type ActionType = {
@@ -21,8 +23,44 @@ type ActionType = {
 }
 
 export default function PaymentActions({ payment, sale, isSales = false }: ActionType) {
-  const[loading,setLoading] = useState(false);
+  
   const [modal, showModal] = useState(false);
+
+  const queryClient = useQueryClient();
+  const saleMutation = useMutation({
+    mutationFn: deleteSale,
+    onSettled: (data) => {
+      if (data?.success) {
+        toast.success(data.message || 'Operation Success');
+        queryClient.invalidateQueries({
+          queryKey: ["daily-stats"]
+        }),
+          queryClient.invalidateQueries({
+            queryKey: ["data-detail", sale?.customer?.id.toString()]
+          })
+      } else {
+        toast.error(data?.error || "Failed!!!")
+      }
+    }
+
+  })
+
+  const paymentMutation = useMutation({
+    mutationFn: deletePayment,
+    onSettled: (data) => {
+      if (data?.success) {
+        toast.success(data.message || 'Operation Success');
+        queryClient.invalidateQueries({
+          queryKey: ["daily-stats"]
+        }),
+          queryClient.invalidateQueries({
+            queryKey: ["data-detail", payment?.customer?.id.toString()]
+          })
+      } else {
+        toast.error(data?.error || "Failed!!!")
+      }
+    }
+  })
 
   const ifCanPerfromAction = () => {
     const paymentDate = !isSales ? new Date(payment.paidAt) : new Date(sale.createdAt); // Replace `createdAt` if named differently
@@ -43,22 +81,10 @@ export default function PaymentActions({ payment, sale, isSales = false }: Actio
       alert("You cannot delete payments older than 2 days.");
       return;
     }
-
     const confirmed = confirm(`Delete this ${isSales ? 'Sale Record ?' : "Payment ?"}`);
     if (!confirmed) return;
 
-    try{
-      setLoading(true);
-      const res = isSales ? await deleteSale(sale.id) : await deletePayment(payment.id);
-      alert(res.success ? res.message : "Operation Failed");
-
-    }catch(e){
-      alert("Failed to Delete");
-    }finally{
-      setLoading(false);
-    }
-
-
+    isSales ? saleMutation.mutate(sale.id) : paymentMutation.mutate(payment.id);
   };
 
   const handleUpdate = () => {
@@ -74,10 +100,10 @@ export default function PaymentActions({ payment, sale, isSales = false }: Actio
     }
   };
 
-  if(loading){
-    return(
+  if (saleMutation.isPending || paymentMutation.isPending) {
+    return (
       <div>
-        <Loading/>
+        <Loading />
       </div>
     )
   }
@@ -85,7 +111,7 @@ export default function PaymentActions({ payment, sale, isSales = false }: Actio
     <div className="flex space-x-4">
       {/* Edit Button (Pencil Icon) */}
       <button
-        disabled={loading}
+        disabled={saleMutation.isPending || paymentMutation.isPending}
         onClick={handleUpdate}
         className="text-blue-600 hover:text-blue-800 transform hover:scale-110 transition-all duration-200"
       >
@@ -98,7 +124,7 @@ export default function PaymentActions({ payment, sale, isSales = false }: Actio
       {/* Delete Button (Trash Icon) */}
       <button
         onClick={handleDelete}
-        disabled={loading}
+        disabled={saleMutation.isPending || paymentMutation.isPending}
         className="text-red-600 hover:text-red-800 transform hover:scale-110 transition-all duration-200"
       >
         <Trash2
@@ -110,19 +136,19 @@ export default function PaymentActions({ payment, sale, isSales = false }: Actio
       <Modal isOpen={modal} onClose={() => showModal(false)}>
         {
           isSales ? (
-          <div className="bg-red-200 p-6 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Update Sale</h2>
-            <UpdateSales sale={sale} />
-  
-          </div>
-  
-          ): (
-          <div className="bg-red-200 p-6 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Update Payment</h2>
-            <UpdatePayment payment={payment} />
-  
-          </div>
-  
+            <div className="bg-red-200 p-6 rounded-lg">
+              <h2 className="text-xl font-semibold mb-4">Update Sale</h2>
+              <UpdateSales sale={sale} onClose={() => showModal(false)} />
+
+            </div>
+
+          ) : (
+            <div className="bg-red-200 p-6 rounded-lg">
+              <h2 className="text-xl font-semibold mb-4">Update Payment</h2>
+              <UpdatePayment payment={payment} onClose={() => showModal(false)} />
+
+            </div>
+
           )
 
         }

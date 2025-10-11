@@ -5,12 +5,27 @@ import { ExpenseType } from "@/types/expense";
 import { FormEvent, useEffect, useState } from "react"
 import Loading from "./Loading";
 import { updateExpense } from "@/action/updateExpense";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
-export default function({expense}: {expense: ExpenseType}){
+export default function({expense, onClose}: {expense: ExpenseType, onClose: () => void}){
     const [data, setData] = useState<any>({});
-    const [loading,setLoading] = useState(false);
-    const [message,setMessage] = useState<null | string>(null);
-    const [error,setError] = useState<null | string>(null);
+    
+    const queryClient = useQueryClient();
+    const { mutate, isPending} = useMutation({
+      mutationFn: updateExpense,
+      onSettled: (data) => {
+        if(data?.success){
+          toast.success(data.message || "Update Successful!!!")
+          queryClient.invalidateQueries({
+            queryKey: ["daily-stats"]
+          })
+          onClose();
+        }else {
+          toast.error(data?.error || "Update Failed!!!")
+        }
+      }
+    })
 
     useEffect(() => {
         setData(expense);
@@ -18,9 +33,7 @@ export default function({expense}: {expense: ExpenseType}){
 
     const handleSubmit = async(e: React.FormEvent) => {
         e.preventDefault();
-        
-        setLoading(true);
-        
+            
         const updateData = {
             title: data.title,
             amount: data.amount,
@@ -28,20 +41,10 @@ export default function({expense}: {expense: ExpenseType}){
             note: data.note,
             expenseId: data.id,
             quantity: data.quantity
+         }
+         mutate(updateData);
 
-        }
-
-        try {
-            const res = await updateExpense(updateData);
-            setMessage(res.success && res.message ? res.message : null);
-            setError(!res.success ? "Failed to Update" : null);
-
-        }catch(e){
-            setError("Internal Server Error");
-            setMessage(null);
-        }finally{
-            setLoading(false);
-        }
+    
 
     }
 
@@ -137,23 +140,14 @@ export default function({expense}: {expense: ExpenseType}){
           <div className="md:col-span-2">
             <button
               type="submit"
-              disabled={loading}
+              disabled={isPending}
               className="bg-red-600 hover:bg-red-900 text-white font-semibold px-6 py-3 rounded-lg transition w-full md:w-auto cursor-pointer"
             > 
-              {loading ? <Loading/> : 'Update Expense'}
+              {isPending ? <Loading/> : 'Update Expense'}
             </button>
           </div>
   
-          {message && (
-            <p className="text-green-600 md:col-span-2 mt-2">
-              ✅ Expense Updated Successfully !!!
-            </p>
-          )}
-          {error && (
-            <p className="text-red-600 md:col-span-2 mt-2">
-              {error}
-            </p>
-          )}
+         
         </form>
       </div>
     )

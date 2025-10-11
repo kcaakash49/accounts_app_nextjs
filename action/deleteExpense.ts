@@ -16,13 +16,14 @@ export async function deleteExpense(id: number){
 
         return {
             success: true,
-            message: "Record Deleted Successfully"
+            message: "Record Deleted Successfully!!!"
 
         }
     }catch(e){
         console.log(e);
         return {
-            success: false
+            success: false,
+            error: "Something Happened!!!"
         }
     }
 }

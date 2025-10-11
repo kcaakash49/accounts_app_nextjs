@@ -30,7 +30,7 @@ export async function updateExpense(updateData : UpdateType){
 
             }
         })
-
+        
         revalidatePath("/dashboard/expenses");
 
         return {
@@ -40,7 +40,8 @@ export async function updateExpense(updateData : UpdateType){
     }catch(e){
         console.error(e);
         return {
-            success: false
+            success: false,
+            error: "Operation Failed!!!"
         }
     }
 }

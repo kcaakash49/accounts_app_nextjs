@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 
 export function middleware(request: NextRequest) {
-  console.log("Middleware running");
+
   const token = request.cookies.get("token")?.value;
   
   const isLoginPage = request.nextUrl.pathname === "/";

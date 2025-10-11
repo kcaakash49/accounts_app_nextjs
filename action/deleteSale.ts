@@ -26,7 +26,8 @@ export async function deleteSale(id: number){
     }catch(e){
         console.error(e);
         return {
-            success: false
+            success: false,
+            error: "Something Happened!!!"
         }
     }
 }

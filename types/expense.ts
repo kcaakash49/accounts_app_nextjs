@@ -3,8 +3,6 @@
 export type AdminType = {
     id : number;
     name: string;
-    username: string;
-    createdAt: Date;
 }
 
 export type ExpenseType = {

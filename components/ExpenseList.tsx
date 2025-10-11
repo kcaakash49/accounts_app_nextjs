@@ -4,50 +4,39 @@ import ExpenseActions from "./ExpenseActions";
 import { ExpenseType } from "@/types/expense";
 
 
-export default async function(){
-    try{
-        const res = await expenseHistory();
-        
-        if(!res.success){
-            <DisplayError error="Something Happened"/>
-        }
-
-        if(!res.data || res.data.length === 0){
-            return <DisplayError error="No data Found"/>
-        }
-
+export default function({expenses}: {expenses: ExpenseType[]}){
         return (
-            <div className="p-4">
+            <div className="">
             {/* Table view for medium and larger screens */}
             <div className="hidden md:block">
-              <table className="w-full table-auto border-collapse">
+              <table className="min-w-full text-sm text-left border">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="p-2 text-center">#</th>
-                    <th className="p-2 text-center">Title</th>
-                    <th className="p-2 text-center">Type</th>
-                    <th className="p-2 text-center">Amount</th>
-                    <th className="p-2 text-center">Note</th>
-                    <th className="p-2 text-center">Quantity</th>
-                    <th className="p-2 text-center hidden lg:table-cell">Recorded By</th>
-                    <th className="p-2 text-center">Created At</th>
-                    <th className="p-2 text-center">Total</th>
-                    <th className="p-2 text-center">Actions</th>
+                    <th className="px-4 py-2 border">#</th>
+                    <th className="px-4 py-2 border">Title</th>
+                    <th className="px-4 py-2 border">Type</th>
+                    <th className="px-4 py-2 border">Amount</th>
+                    <th className="px-4 py-2 border">Note</th>
+                    <th className="px-4 py-2 border">Quantity</th>
+                    <th className="px-4 py-2 border hidden lg:table-cell">Recorded By</th>
+                    <th className="px-4 py-2 border">Created At</th>
+                    <th className="px-4 py-2 border">Total</th>
+                    <th className="px-4 py-2 border">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {res?.data?.map((expense : ExpenseType, index: number) => (
+                  {expenses.map((expense : ExpenseType, index: number) => (
                     <tr key={expense.id} className="border-b dark:border-gray-700">
-                      <td className="p-2 text-center">{index + 1}</td>
-                      <td className="p-2 text-center">{expense.title}</td>
-                      <td className="p-2 text-center">{expense.expenseType}</td>
-                      <td className="p-2 text-center">Rs. {expense.amount}</td>
-                      <td className="p-2 text-center">{expense.note || "—"}</td>
-                      <td className="p-2 text-center">{expense.quantity}</td>
-                      <td className="p-2 text-center hidden lg:table-cell">{expense.recordedBy?.name}</td>
-                      <td className="p-2 text-center">{new Date(expense.createdAt).toLocaleString()}</td>
-                      <td className="p-2 text-center">{expense.total}</td>
-                      <td className="p-2 text-center"><ExpenseActions expense = {expense}/></td>
+                      <td className="px-4 py-2 border">{index + 1}</td>
+                      <td className="px-4 py-2 border">{expense.title}</td>
+                      <td className="px-4 py-2 border">{expense.expenseType}</td>
+                      <td className="px-4 py-2 border">Rs. {expense.amount}</td>
+                      <td className="px-4 py-2 border">{expense.note || "—"}</td>
+                      <td className="px-4 py-2 border">{expense.quantity}</td>
+                      <td className="px-4 py-2 border hidden lg:table-cell">{expense.recordedBy?.name}</td>
+                      <td className="px-4 py-2 border">{new Date(expense.createdAt).toLocaleString()}</td>
+                      <td className="px-4 py-2 border">{expense.total}</td>
+                      <td className="px-4 py-2 border"><ExpenseActions expense = {expense}/></td>
                     </tr>
                   ))}
                 </tbody>
@@ -55,14 +44,14 @@ export default async function(){
             </div>
       
             {/* Card view for small screens */}
-            <div className="block md:hidden space-y-4">
-              {res?.data?.map((expense : ExpenseType) => (
+            <div className="block md:hidden rounded-2xl">
+              {expenses.map((expense : ExpenseType) => (
                 <div
                   key={expense.id}
-                  className="rounded-2xl shadow-md p-4 "
+                  className="rounded-2xl bg-gray-600 shadow-md p-4 text-white mb-2"
                 >
                   <h2 className="text-lg font-semibold mb-2">{expense.title}</h2>
-                  <div className="text-sm text-gray-700">
+                  <div className="text-sm">
                     <p><strong>Amount:</strong> Rs. {expense.amount}</p>
                     <p><strong>Expense Type:</strong> {expense.expenseType}</p>
                     <p><strong>Recorded By:</strong>  {expense.recordedBy?.name}</p>
@@ -80,10 +69,5 @@ export default async function(){
             </div>
           </div>
         )
-    }catch(e){
-        return (
-            <DisplayError error="Internal Server Error!!!"/>
-        )
-    }
 
 }

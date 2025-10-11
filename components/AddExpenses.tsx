@@ -6,6 +6,8 @@
 import { useState } from 'react';
 import Loading from './Loading';
 import { addExpense } from '@/action/addExpense';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 type ResponseType = {
     success: boolean;
@@ -19,9 +21,31 @@ export default function() {
   const [expenseType, setExpenseType] = useState('');
   const [note, setNote] = useState('');
   const [quantity,setQuantity] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message,setMessage] = useState<null | String>(null)
-  const [error,setError] = useState<null | String>(null)
+
+  const resetForm = () => {
+    setAmount("");
+    setTitle("");
+    setExpenseType("");
+    setNote("");
+    setQuantity("")
+  }
+
+
+  const queryClient = useQueryClient();
+  const { mutate, isPending } = useMutation({
+    mutationFn: addExpense,
+    onSettled: (data) => {
+      if (data?.success){
+        toast.success(data.message || "✅Expense Added Successfully")
+        queryClient.invalidateQueries({
+          queryKey: ["daily-stats"]
+        })
+        resetForm();
+      }else {
+        toast.error(data?.error || "Operation Failed!!!")
+      }
+    }
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,30 +56,7 @@ export default function() {
         amount: Number(amount),
         quantity: Number(quantity)
     }
-    try {
-        setLoading(true);
-        const res: ResponseType = await addExpense(expenseData);
-
-        if(res.success && res.message){
-            setMessage(res.message);
-            setError(null)
-            setTitle('');
-            setExpenseType('');
-            setNote("");
-            setAmount('');
-            setQuantity('')
-        }else if(res.error){
-            setError(res.error);
-            setMessage(null)
-        }
-
-    }catch(e){
-        setError("Internal Server Error");
-        setMessage(null)
-
-    }finally {
-        setLoading(false);
-    }
+    mutate(expenseData);
     
   };
 
@@ -79,8 +80,6 @@ export default function() {
             value={title}
             onChange={(e) => {
               setTitle(e.target.value);
-              setMessage(null);
-              setError(null);
             }}
             placeholder="Expense Title"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
@@ -141,23 +140,12 @@ export default function() {
         <div className="md:col-span-2">
           <button
             type="submit"
-            disabled={loading}
+            disabled={isPending}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition w-full md:w-auto cursor-pointer"
           > 
-            {loading ? <Loading/> : 'Add Expense'}
+            {isPending ? <Loading/> : 'Add Expense'}
           </button>
         </div>
-
-        {message && (
-          <p className="text-green-600 md:col-span-2 mt-2">
-            ✅ Expense Added Successfully !!!
-          </p>
-        )}
-        {error && (
-          <p className="text-red-600 md:col-span-2 mt-2">
-            {error}
-          </p>
-        )}
       </form>
     </div>
   );

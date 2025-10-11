@@ -56,7 +56,7 @@ export async function addExpense(formData: FormType) {
 
 
     }catch(e){
-        console.error(e);
+        
         return {
             success: false,
             error: "Something Happened !!!"

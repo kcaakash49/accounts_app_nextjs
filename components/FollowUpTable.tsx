@@ -64,11 +64,8 @@ export default function FollowUpTable({ customers }: CustomerTableProps) {
     mutate(id);
   };
 
-  if(customers.length === 0){
-    return <div className="text-center text-xl text-red-500">
-      No FollowUps Today!!!
-    </div>
-  }
+  if(customers.length === 0) return null;
+
   return (
     <div className="relative">
       <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 text-center">
@@ -108,11 +105,11 @@ export default function FollowUpTable({ customers }: CustomerTableProps) {
       </div>
 
       {/* Mobile Cards */}
-      <div className="sm:hidden space-y-4 mt-4">
+      <div className="sm:hidden space-y-4 mt-4 border rounded-2xl border-gray-300 p-2">
         {customers.map((customer, index) => (
           <div
             key={customer.id}
-            className="border rounded-lg p-4 text-sm relative"
+            className="border border-gray-400 rounded-lg p-4 text-sm relative"
           >
             <div className="flex justify-between items-center mb-2">
               <span className="font-semibold">#{index + 1}</span>

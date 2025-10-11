@@ -15,6 +15,8 @@ import { ExpenseType } from "@/types/expense";
 import { deleteExpense } from "@/action/deleteExpense";
 import UpdateExpense from "./UpdateExpense";
 import Loading from "./Loading";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 
 export default function ExpenseActions({expense}: {expense: ExpenseType}) {
@@ -35,6 +37,20 @@ export default function ExpenseActions({expense}: {expense: ExpenseType}) {
     return true;
   }
 
+  const queryClient = useQueryClient();
+  const { mutate, isPending } = useMutation({
+    mutationFn: deleteExpense,
+    onSettled: (data) => {
+      if (data?.success){
+        toast.success(data.message || "Success!!!")
+        queryClient.invalidateQueries({
+          queryKey: ["daily-stats"]
+        })
+      }else {
+        toast.error(data?.error || "Delete Operation Failed!!")
+      }
+    }
+  })
   const handleDelete = async () => {
     const ifActionCanBePerformed = ifCanPerfromAction();
     if (!ifActionCanBePerformed) {
@@ -44,16 +60,7 @@ export default function ExpenseActions({expense}: {expense: ExpenseType}) {
 
     const confirmed = confirm("Delete this expense record?");
     if (!confirmed) return;
-
-    try {
-        setLoading(true);
-        const res = await deleteExpense(expense.id);
-        alert(res.success ? res.message : "Operation Failed!!!")
-    }catch(e){
-        alert("Failed to Delete.!!!");
-    }finally {
-      setLoading(false);
-    }
+    mutate(expense.id);
   
 
   };
@@ -71,7 +78,7 @@ export default function ExpenseActions({expense}: {expense: ExpenseType}) {
     }
   };
 
-  if(loading){
+  if(isPending){
     return (
       <div className="flex items-center justify-center"><Loading/></div>
     )
@@ -82,7 +89,7 @@ export default function ExpenseActions({expense}: {expense: ExpenseType}) {
       {/* Edit Button (Pencil Icon) */}
       <button
         onClick={handleUpdate}
-        disabled={loading}
+        disabled={isPending}
         className="text-blue-600 hover:text-blue-800 transform hover:scale-110 transition-all duration-200"
       >
         <Edit
@@ -95,7 +102,7 @@ export default function ExpenseActions({expense}: {expense: ExpenseType}) {
       <button
         onClick={handleDelete}
         className="text-red-600 hover:text-red-800 transform hover:scale-110 transition-all duration-200"
-        disabled={loading}
+        disabled={isPending}
       >
         <Trash2
           size={20}
@@ -108,7 +115,7 @@ export default function ExpenseActions({expense}: {expense: ExpenseType}) {
           
           <div className="bg-white p-6 rounded-2xl">
             <h2 className="text-xl font-semibold mb-4">Update Expense</h2>
-                <UpdateExpense expense={expense}/>
+                <UpdateExpense expense={expense} onClose={() => showModal(false)}/>
   
           </div>
   
