@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import SalesList from "./SalesList";
 import PaymentsList from "./PaymentLists";
 import ExpenseList from "./ExpenseList";
+import TodaySummary from "./TodaySummary";
 
 export default function DailyStats() {
     const { data, isLoading, isError } = useQuery({
@@ -22,9 +23,19 @@ export default function DailyStats() {
     }
 
     if (data?.success) {
-        const { salesReport, paymentReport, expenseReport } = data;
+        console.log(data);
+        const { salesReport, paymentReport, expenseReport,totals } = data;
+    
         return (
             <div>
+                {
+                    totals && (
+                        <div className="mb-5">
+                            <TodaySummary totals={totals}/>
+
+                        </div>
+                    )
+                }
                 {salesReport && salesReport.length > 0 && (
                     <div>
                         <h2 className="font-bold text-center mb-2">Today's Sale</h2>
