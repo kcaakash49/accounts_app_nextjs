@@ -20,7 +20,7 @@ import { useRouter } from "next/navigation";
 
 
 export default function CustomerActions({customer}: any) {
-  
+  console.log(customer)
   const [modal, showModal] = useState(false);
   const[loading,setLoading] = useState(false);
 

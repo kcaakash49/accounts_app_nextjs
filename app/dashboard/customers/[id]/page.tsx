@@ -207,7 +207,7 @@ export default function CustomerDetailPage() {
             </div>
           )}<div>
             <p className="pb-2 font-bold">Edit User</p>
-            <CustomerActions customer={data} />
+            <CustomerActions customer={user} />
           </div>
         </div>
       </section>

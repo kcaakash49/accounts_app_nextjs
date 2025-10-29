@@ -4,6 +4,7 @@ import client from "@/db";
 import { revalidatePath } from "next/cache";
 
 export async function deleteCustomer(id: number) {
+  console.log(id);
   try {
     await client.$transaction(async (tx) => {
       const customer = await tx.customer.findUnique({

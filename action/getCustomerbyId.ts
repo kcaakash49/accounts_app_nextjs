@@ -2,7 +2,6 @@
 import client from "@/db";
 
 export async function getCustomerbyId(id: number) {
-  console.log("I am Fetching")
   try {
     const [user, salesSum, paymentSum] = await Promise.all([
       client.customer.findUnique({
