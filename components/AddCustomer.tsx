@@ -4,7 +4,7 @@ import { addcustomer } from '@/action/addcustomer';
 import { useState } from 'react';
 import Loading from './Loading';
 import { ActiveStatus } from '@prisma/client';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 
@@ -14,6 +14,7 @@ export default function() {
   const [address, setAddress] = useState('');
   const [secondContact, setSecondContact] = useState('');
   const [activeStatus, setActiveStatus] = useState<ActiveStatus>('ONLINE');
+  const queryClient = useQueryClient();
 
   const resetForm = () => {
     setName('');
@@ -27,6 +28,9 @@ export default function() {
     mutationFn: addcustomer,
     onSuccess: (data) => {
       toast.success(data.message || "Successfully Added!!!")
+      queryClient.invalidateQueries({
+        queryKey: ["customer-list"]
+      })
       resetForm();
       
     },

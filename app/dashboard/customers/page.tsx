@@ -1,4 +1,4 @@
-
+"use client"
 
 import { getCustomer } from "@/action/getCustomer";
 import AddCustomer from "@/components/AddCustomer";
@@ -6,7 +6,11 @@ import CustomerList from "@/components/CustomerList";
 import LinkButton from "@/components/LinkButton";
 import Navbar from "@/components/Navbar";
 import { ActiveStatus, DueStatus } from "@prisma/client";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export type User = {
     id: number;
@@ -30,23 +34,45 @@ type UserSchema =
 
 
 
-export default async function () {
-    try {
-        const users: UserSchema = await getCustomer();
-        if (!users?.users || users?.users.length === 0) {
-            return (
-                <div className="flex flex-col h-full items-center justify-center">
-                    <AddCustomer />
-                    <div>No Customer Record</div>
-                </div>
-
-            )
+export default function () {
+        const [page, setPage] = useState(1);
+        const router = useRouter();
+        const { data: users, isLoading, isError, error} = useQuery({
+            queryKey: ["customer-list", page],
+            queryFn: async () => {
+                const res = await getCustomer({page, count:20})
+                if (!res.status) throw new Error (res.error)
+                return res.users;
+            },
+            retry: 1,
+            refetchOnWindowFocus: true,
+            staleTime: 5 * 60 * 1000
+        })
+        
+        if (isLoading) {
+            return <div>
+                Loading.......
+            </div>
         }
+
+        if (isError) {
+            toast.error("Something Happened");
+            router.replace("/dashboard")
+            return;
+        }
+
+        if (users?.length === 0 || !users) {
+            return <div className="text-center text-4xl">
+                No Records Found
+            </div>
+        }
+
         return (
             <div>
-                <LinkButton href="/dashboard/add-customer" label="Add Customer"/>
+                
                 <div className="mt-5 md:sm-10">
-                    <CustomerList users={users?.users} />
+                    <button onClick={() => router.push("/dashboard/add-customer")}>Add Customer</button>
+                    <CustomerList users={users} page = {page} setPage={setPage} pageSize={20}/>
 
                 </div>
 
@@ -54,9 +80,6 @@ export default async function () {
         )
 
 
-    } catch (e) {
-        return <div>Internal Error</div>
-    }
 
 }
 

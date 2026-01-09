@@ -2,36 +2,26 @@
 
 import client from "@/db"
 
-export async function getCustomer(){
+interface Props {
+    page?: number;
+    count?: number;
+}
+
+export async function getCustomer({page=1, count=10}: Props){
     
     try {
         const users = await client.customer.findMany({
             orderBy: {
                 createdAt: "desc"
-            }
+            },
+            skip: (page-1) * count,
+            take: count
         });
-
-        // const finalizedUser = users?.map((user) => {
-        //     const totalSales = user?.sales?.reduce((sum,sale) => {
-        //         return sum + sale.amount;
-        //     }, 0);
-
-        //     const totalPayment = user?.payments?.reduce((sum, payment) => {
-        //         return sum + payment.amountPaid;
-        //     }, 0);
-
-        //     const remainingDues = totalSales - totalPayment;
-        //     return {
-        //         ...user,
-        //         remainingDues: remainingDues
-        //     }
-
-
-        // })
       
 
         return {
-            users
+            users,
+            status: 200
         }
 
     }catch(e){

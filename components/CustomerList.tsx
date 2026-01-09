@@ -2,7 +2,22 @@ import { User } from "@/app/dashboard/customers/page";
 import Link from "next/link";
 import CustomerActions from "./CustomerActions";
 
-export default function CustomerList({ users }: { users: User[] }) {
+type Props = {
+  users: User[];
+  page: number;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  pageSize: number;
+};
+
+export default function CustomerList({
+  users,
+  page,
+  setPage,
+  pageSize,
+}: Props) {
+  const hasNextPage = users.length === pageSize;
+  const hasPrevPage = page > 1;
+
   return (
     <div className="w-full">
       {/* Large screen table */}
@@ -14,13 +29,17 @@ export default function CustomerList({ users }: { users: User[] }) {
               <th className="text-left px-4 py-2">Name</th>
               <th className="text-left px-4 py-2">Address</th>
               <th className="text-left px-4 py-2">Contact</th>
-              <th className="text-left px-4 py-2 hidden lg:table-cell">Active Status</th>
+              <th className="text-left px-4 py-2 hidden lg:table-cell">
+                Active Status
+              </th>
             </tr>
           </thead>
           <tbody>
             {users.map((user, index) => (
               <tr key={user.id} className="border-b hover:bg-gray-100">
-                <td className="px-4 py-2">{index + 1}</td>
+                <td className="px-4 py-2">
+                  {(page - 1) * pageSize + index + 1}
+                </td>
                 <td className="px-4 py-2">
                   <Link
                     href={`/dashboard/customers/${user.id}`}
@@ -31,8 +50,17 @@ export default function CustomerList({ users }: { users: User[] }) {
                 </td>
                 <td className="px-4 py-2">{user.address || "-"}</td>
                 <td className="px-4 py-2">{user.contact}</td>
-                <td className="px-4 py-2 hidden lg:table-cell">{user.activeStatus === 'ONLINE' ? <span className="py-1 px-2 bg-green-500 text-white">{user.activeStatus}</span>: <span className="py-1 px-2 bg-red-400 text-white">{user.activeStatus}</span>}</td>
-               
+                <td className="px-4 py-2 hidden lg:table-cell">
+                  {user.activeStatus === "ONLINE" ? (
+                    <span className="py-1 px-2 bg-green-500 text-white">
+                      {user.activeStatus}
+                    </span>
+                  ) : (
+                    <span className="py-1 px-2 bg-red-400 text-white">
+                      {user.activeStatus}
+                    </span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -42,13 +70,13 @@ export default function CustomerList({ users }: { users: User[] }) {
       {/* Small screen cards */}
       <div className="sm:hidden space-y-4 mt-4">
         {users.map((user, index) => (
-          <div
-            key={user.id}
-            className="border rounded-lg p-4 text-sm"
-          >
+          <div key={user.id} className="border rounded-lg p-4 text-sm">
             <div className="flex justify-between items-center mb-2">
-              <span className="font-semibold">#{index + 1}</span>
+              <span className="font-semibold">
+                #{(page - 1) * pageSize + index + 1}
+              </span>
             </div>
+
             <p>
               <strong>Name:</strong>{" "}
               <Link
@@ -58,19 +86,50 @@ export default function CustomerList({ users }: { users: User[] }) {
                 {user.name}
               </Link>
             </p>
+
             <p>
               <strong>Contact:</strong> {user.contact}
-
-            </p>
-            <p>
-              <strong>Active Status:</strong> {user.activeStatus === 'ONLINE' ? <span className="px-2 py-0.5 text-xs bg-green-500 text-white">{user.activeStatus}</span>: <span className="py-0.5 px-2 text-xs bg-red-400 text-white">{user.activeStatus}</span>}
-            </p>
-            <p>
-              <strong>Address: </strong> {user.address}
             </p>
 
+            <p>
+              <strong>Active Status:</strong>{" "}
+              {user.activeStatus === "ONLINE" ? (
+                <span className="px-2 py-0.5 text-xs bg-green-500 text-white">
+                  {user.activeStatus}
+                </span>
+              ) : (
+                <span className="py-0.5 px-2 text-xs bg-red-400 text-white">
+                  {user.activeStatus}
+                </span>
+              )}
+            </p>
+
+            <p>
+              <strong>Address:</strong> {user.address || "-"}
+            </p>
           </div>
         ))}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-between items-center mt-6">
+        <button
+          disabled={!hasPrevPage}
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          className="px-4 py-2 border rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+
+        <span className="text-sm">Page {page}</span>
+
+        <button
+          disabled={!hasNextPage}
+          onClick={() => setPage((p) => p + 1)}
+          className="px-4 py-2 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
     </div>
   );

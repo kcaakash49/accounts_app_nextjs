@@ -17,6 +17,7 @@ export default function () {
     const searchParams = useSearchParams();
     const searchKey = searchParams.get("query");
     const queryClient = useQueryClient();
+    const [page,setPage] = useState(1);
 
     const { data, isLoading } = useQuery({
         queryKey: ["searchResult"],
@@ -34,7 +35,6 @@ export default function () {
 
     }, [searchKey])
 
-    console.log("Search Result", data);
 
     if (isLoading) {
         return <Loading/>
@@ -44,7 +44,7 @@ export default function () {
     
     return (
         <div>
-            <CustomerList users={data.customers}/>
+            <CustomerList users={data.customers} page={page} pageSize={30} setPage={setPage}/>
 
         </div>
 
