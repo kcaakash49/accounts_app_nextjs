@@ -9,7 +9,7 @@ import { ActiveStatus, DueStatus } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export type User = {
@@ -24,14 +24,9 @@ export type User = {
     secondContact: string | null;
 };
 
-
-
 type UserSchema =
     | { users: User[]; error?: undefined; err?: undefined }
     | { error: string; err: unknown; users: User[] };
-
-
-
 
 
 export default function () {
@@ -48,17 +43,19 @@ export default function () {
             refetchOnWindowFocus: true,
             staleTime: 5 * 60 * 1000
         })
+
+        useEffect(() => {
+            if (isError) {
+                toast.error("Something Happened");
+                router.replace("/dashboard")
+                return;
+            }
+        },[isError])
         
         if (isLoading) {
-            return <div>
+            return <div className="min-h-screen flex items-center justify-center">
                 Loading.......
             </div>
-        }
-
-        if (isError) {
-            toast.error("Something Happened");
-            router.replace("/dashboard")
-            return;
         }
 
         if (users?.length === 0 || !users) {
@@ -78,8 +75,6 @@ export default function () {
 
             </div>
         )
-
-
 
 }
 

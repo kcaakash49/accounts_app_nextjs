@@ -1,0 +1,23 @@
+services:
+  wvc-next:
+    build: .
+    container_name: wvc-next
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:7005:7005"
+
+    env_file:
+      - .env
+      - .env.production
+
+    environment:
+      NODE_ENV: production
+      PORT: 7005
+
+    networks:
+      - wvc-network
+
+networks:
+  wvc-network:
+    external: true
