@@ -8,7 +8,6 @@ import Navbar from "@/components/Navbar";
 import LogoutButton from "@/components/LogOutButton";
 
 
-export const revalidate = 60;
 
 export default async function DashLayout({ children }: { children: ReactNode }) {
   const token = (await cookies()).get("token")?.value;

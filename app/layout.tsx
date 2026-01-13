@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: "Basic Accounts",
 };
 
-export const revalidate = 60;
+
 
 export default function RootLayout({
   children,
