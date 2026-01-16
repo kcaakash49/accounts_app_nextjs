@@ -1,10 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 
 
-
-console.log("inside db.ts")
 const prismaSingleton = () => {
-    console.log("inside single")
+    
     return new PrismaClient();
 
 }

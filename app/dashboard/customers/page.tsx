@@ -68,7 +68,7 @@ export default function () {
             <div>
                 
                 <div className="mt-5 md:sm-10">
-                    <button onClick={() => router.push("/dashboard/add-customer")}>Add Customer</button>
+                    <button onClick={() => router.push("/dashboard/add-customer")} className="bg-blue-400 px-4 py-2">Add Customer</button>
                     <CustomerList users={users} page = {page} setPage={setPage} pageSize={20}/>
 
                 </div>

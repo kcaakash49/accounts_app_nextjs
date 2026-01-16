@@ -13,7 +13,6 @@ import { cookies } from "next/headers";
 export async function POST(req: NextRequest) {
     
     try {
-      console.log("Signin Called");
       const { username, password } = await req.json();
   
       const user = await client.adminUser.findUnique({
