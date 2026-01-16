@@ -3,7 +3,7 @@
 import client from "@/db";
 
 export async function searchCustomer(search: string) {
-  console.log("Fetching User")
+  
   try {
     const customers = await client.customer.findMany({
       where: {

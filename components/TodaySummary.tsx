@@ -29,7 +29,7 @@ export default function TodaySummary({ totals }: { totals: TotalTypes }) {
   return (
     <div className="w-full bg-white rounded-2xl shadow-md border border-gray-100 p-6">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">
-        Today’s Overview
+        Today's Overview
       </h2>
 
       <div className="w-full h-72">
@@ -53,7 +53,10 @@ export default function TodaySummary({ totals }: { totals: TotalTypes }) {
               axisLine={false}
             />
             <Tooltip
-              formatter={(value: number) => [`Rs. ${value.toLocaleString()}`, "Amount"]}
+              formatter={(value: number | undefined) => [
+                `Rs. ${value ? value.toLocaleString() : 0}`,
+                "Amount"
+              ]}
               contentStyle={{
                 backgroundColor: "#ffffff",
                 borderRadius: "0.5rem",
