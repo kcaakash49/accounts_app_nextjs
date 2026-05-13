@@ -45,7 +45,7 @@ export default function SalesList({ sales }: { sales: SaleSchema[] }) {
         <table className="w-full table-auto border-collapse text-sm text-gray-600">
           <thead>
             <tr className="border-b border-blue-50 bg-blue-50/50 font-medium text-blue-900">
-              <th className="px-5 py-3.5 text-left w-12">#</th>
+            
               <th className="px-5 py-3.5 text-left">Customer Name</th>
               <th className="px-5 py-3.5 text-left">Contact</th>
               <th className="px-5 py-3.5 text-left">Amount</th>
@@ -57,7 +57,7 @@ export default function SalesList({ sales }: { sales: SaleSchema[] }) {
           <tbody className="divide-y divide-blue-50">
             {sales.map((sale, index) => (
               <tr key={sale.id} className="transition-colors hover:bg-blue-50/30">
-                <td className="px-5 py-4 font-medium text-gray-400">{index + 1}</td>
+          
                 <td className="px-5 py-4">
                   <Link 
                     href={`/dashboard/customers/${sale.customer.id}`} 
