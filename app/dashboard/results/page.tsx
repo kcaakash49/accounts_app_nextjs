@@ -44,7 +44,7 @@ export default function () {
     
     return (
         <div>
-            <CustomerList users={data.customers} page={page} pageSize={30} setPage={setPage}/>
+            <CustomerList users={data.customers} page={page} pageSize={30}/>
 
         </div>
 
