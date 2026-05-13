@@ -29,6 +29,9 @@ export default function UpdatePayment({ payment, onClose }: any) {
         queryClient.invalidateQueries({
           queryKey: ["data-detail", payment?.customer?.id.toString()]
         })
+        queryClient.invalidateQueries({
+          queryKey: ["payment-history"]
+        })
         onClose();
       } else {
         toast.error(data?.error || "Operation Unsuccessful!!!")

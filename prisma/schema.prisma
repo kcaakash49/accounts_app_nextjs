@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  
 }
 
 datasource db {
@@ -14,103 +13,101 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Customer {
-  id         Int       @id @default(autoincrement())
-  name       String
-  contact    String     @unique
+  id            Int          @id @default(autoincrement())
+  name          String
+  contact       String       @unique
   secondContact String?
-  address    String?
-  activeStatus ActiveStatus @default(ONLINE)
-  status     DueStatus  @default(UNPAID)
-  createdAt  DateTime  @default(now())
-  dueDate    DateTime? 
-  sales       Sales[]        // All dues recorded for the customer
-  payments   Payment[]   
-   // All payments made by the customer
+  address       String?
+  activeStatus  ActiveStatus @default(ONLINE)
+  status        DueStatus    @default(UNPAID)
+  createdAt     DateTime     @default(now())
+  dueDate       DateTime?
+  sales         Sales[] // All dues recorded for the customer
+  payments      Payment[]
+  // All payments made by the customer
 }
 
 model Sales {
-  id          Int        @id @default(autoincrement())
-  customer    Customer   @relation(fields: [customerId], references: [id])
+  id          Int       @id @default(autoincrement())
+  customer    Customer  @relation(fields: [customerId], references: [id])
   customerId  Int
   amount      Float
   note        String?
-  createdAt   DateTime   @default(now())
+  createdAt   DateTime  @default(now())
 }
 
 model Payment {
-  id          Int        @id @default(autoincrement())
-  customer    Customer   @relation(fields: [customerId], references: [id])
-  customerId  Int
-  amountPaid  Float
-  paymentMethod PaymentMethod 
-  paidAt      DateTime   @default(now())
-  note        String?
+  id            Int           @id @default(autoincrement())
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  customerId    Int
+  amountPaid    Float
+  paymentMethod PaymentMethod
+  paidAt        DateTime      @default(now())
+  note          String?
 
-  recordedBy  AdminUser  @relation(fields: [adminUserId], references: [id])
+  recordedBy  AdminUser @relation(fields: [adminUserId], references: [id])
   adminUserId Int
 }
 
 model AdminUser {
-  id         Int       @id @default(autoincrement())
-  name       String
-  username   String    @unique
-  password   String
-  createdAt  DateTime  @default(now())
-  expenses   Expenses[]
-  payments   Payment[] 
+  id            Int            @id @default(autoincrement())
+  name          String
+  username      String         @unique
+  password      String
+  createdAt     DateTime       @default(now())
+  expenses      Expenses[]
+  payments      Payment[]
   trashPayments TrashPayment[]
 }
 
 model Expenses {
-  id         Int        @id @default(autoincrement())
-  amount     Float
-  title      String
+  id          Int       @id @default(autoincrement())
+  amount      Float
+  title       String
   expenseType String
   note        String
-  quantity    Int @default(1)
-  total       Float @default(0)
-  recordedBy  AdminUser   @relation(fields: [adminUserId], references: [id])
+  quantity    Int       @default(1)
+  total       Float     @default(0)
+  recordedBy  AdminUser @relation(fields: [adminUserId], references: [id])
   adminUserId Int
   createdAt   DateTime  @default(now())
 }
 
 model TrashCustomer {
-  id          Int            @id @default(autoincrement())
-  name        String
-  contact     String 
-  address     String?
+  id           Int            @id @default(autoincrement())
+  name         String
+  contact      String
+  address      String?
   activeStatus ActiveStatus
-  status      DueStatus
-  createdAt   DateTime
-  deletedAt   DateTime       @default(now())
-  dueDate     DateTime?
-  sales       TrashSales[]
-  payments    TrashPayment[]
+  status       DueStatus
+  createdAt    DateTime
+  deletedAt    DateTime       @default(now())
+  dueDate      DateTime?
+  sales        TrashSales[]
+  payments     TrashPayment[]
 }
 
 model TrashSales {
-  id           Int           @id @default(autoincrement())
-  trashCustomer TrashCustomer @relation(fields: [trashCustomerId], references: [id])
+  id              Int           @id @default(autoincrement())
+  trashCustomer   TrashCustomer @relation(fields: [trashCustomerId], references: [id])
   trashCustomerId Int
-  amount       Float
-  note         String?
-  createdAt    DateTime
+  amount          Float
+  note            String?
+  createdAt       DateTime
 }
 
 model TrashPayment {
-  id             Int          @id @default(autoincrement())
-  trashCustomer  TrashCustomer @relation(fields: [trashCustomerId], references: [id])
+  id              Int           @id @default(autoincrement())
+  trashCustomer   TrashCustomer @relation(fields: [trashCustomerId], references: [id])
   trashCustomerId Int
-  amountPaid     Float
-  paymentMethod  PaymentMethod
-  paidAt         DateTime
-  note           String?
-  recordedBy  AdminUser   @relation(fields: [adminUserId], references: [id])
-  adminUserId    Int
+  amountPaid      Float
+  paymentMethod   PaymentMethod
+  paidAt          DateTime
+  note            String?
+  recordedBy      AdminUser     @relation(fields: [adminUserId], references: [id])
+  adminUserId     Int
 }
-
 
 enum DueStatus {
   UNPAID

@@ -33,6 +33,12 @@ export default function AddSalesForm({ userID, onClose }: AddDueFormProps) {
       queryClient.invalidateQueries({
         queryKey: ["daily-stats"]
       })
+      queryClient.invalidateQueries({
+        queryKey: ["payment-history"]
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ["sales-history"]
+      })
       onClose();
     },
     onError: (error) => {

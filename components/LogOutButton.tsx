@@ -35,8 +35,8 @@ export default function LogoutButton() {
   disabled={isPending}
   className={`px-4 py-2 text-black rounded-lg transition-colors
     ${isPending 
-      ? "bg-red-400 cursor-not-allowed opacity-70" 
-      : "bg-red-200 hover:bg-red-700 cursor-pointer"}`}
+      ? "bg-gray-400 cursor-not-allowed opacity-70" 
+      : "bg-gray-200 hover:bg-blue-300 cursor-pointer"}`}
 >
   {isPending ? "Logging out..." : "Logout"}
 </button>

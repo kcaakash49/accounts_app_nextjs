@@ -38,6 +38,9 @@ export default function PaymentActions({ payment, sale, isSales = false }: Actio
           queryClient.invalidateQueries({
             queryKey: ["data-detail", sale?.customer?.id.toString()]
           })
+          queryClient.invalidateQueries({
+            queryKey: ["sales-history"]
+          })
       } else {
         toast.error(data?.error || "Failed!!!")
       }
@@ -55,6 +58,9 @@ export default function PaymentActions({ payment, sale, isSales = false }: Actio
         }),
           queryClient.invalidateQueries({
             queryKey: ["data-detail", payment?.customer?.id.toString()]
+          })
+          queryClient.invalidateQueries({
+            queryKey: ["payment-history"]
           })
       } else {
         toast.error(data?.error || "Failed!!!")

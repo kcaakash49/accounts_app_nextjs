@@ -5,12 +5,12 @@ import MobileSidebar from "./MobileSidebar";
 
 export default function Navbar() {
     return (
-        <div className="bg-blue-600 text-white w-full">
+        <div className="bg-blue-600 text-white w-full hidden md:block top-0 left-64 sticky">
             <div className="px-4 py-3 flex flex-col gap-4 sm:gap-0">
                 {/* First Row */}
                 <div className="flex justify-between items-center">
                     {/* Left: Add Customer Button */}
-                    <MobileSidebar/>
+                    {/* <MobileSidebar/> */}
 
                     {/* <Link
                         href="/dashboard/add-customer"

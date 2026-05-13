@@ -33,6 +33,9 @@ export default function AddPayment({ userID, onClose }: AddDueFormProps) {
       queryClient.invalidateQueries({
         queryKey: ["daily-stats"]
       })
+      queryClient.invalidateQueries({
+        queryKey: ["payment-history"]
+      })
       onClose();
     },
     onError: (error) => {

@@ -22,6 +22,9 @@ export default function UpdateSales({ sale, onClose }: any) {
         queryClient.invalidateQueries({
           queryKey: ["data-detail", sale?.customer?.id.toString()]
         })
+        queryClient.invalidateQueries({
+          queryKey: ["sales-history"]
+        })
         onClose();
 
       }else {
