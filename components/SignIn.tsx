@@ -45,7 +45,7 @@ export default function LoginForm() {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-8 bg-white border border-gray-200 rounded-xl shadow-md">
-      <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Login</h2>
+      <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Welcome to <span className="text-blue-600">Nice IT </span><span className="text-red-600">Solution</span></h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex flex-col gap-1">
           <label htmlFor="username" className="font-medium">
