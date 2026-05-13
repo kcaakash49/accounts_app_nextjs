@@ -52,7 +52,7 @@ export default function TodaySummary({ totals }: { totals: TotalTypes }) {
               tickLine={false}
               axisLine={false}
             />
-            <Tooltip
+            {/* <Tooltip
               formatter={(value: number | undefined) => [
                 `Rs. ${value ? value.toLocaleString() : 0}`,
                 "Amount"
@@ -63,7 +63,7 @@ export default function TodaySummary({ totals }: { totals: TotalTypes }) {
                 border: "1px solid #e5e7eb",
                 boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
               }}
-            />
+            /> */}
 
             <Bar dataKey="amount" radius={[8, 8, 0, 0]}>
               {data.map((entry, index) => (
