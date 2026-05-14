@@ -1,13 +1,21 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Package, Truck, History, PlusCircle, MinusCircle, AlertCircle, Calendar, ShieldCheck, X } from "lucide-react";
-import { replenishStock, consumeStock } from "@/action/inventory";
+import { Package, Truck, History, PlusCircle, MinusCircle, AlertCircle, Calendar, ShieldCheck, X, RefreshCw } from "lucide-react";
+import { replenishStock, consumeStock, returnStock, processVerifiedReturn } from "@/action/inventory";
 import { toast } from "sonner";
 
 export default function ProductClientManager({ product, initialVendors }: any) {
   const [isInwardOpen, setIsInwardOpen] = useState(false);
   const [isOutwardOpen, setIsOutwardOpen] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [isReturnOpen, setIsReturnOpen] = useState(false);
+  const [returnForm, setReturnForm] = useState({
+    quantity: 0,
+    notes: "",
+  });
+
+
   const [isPending, startTransition] = useTransition();
 
   // Internal Modal Input States
@@ -30,6 +38,36 @@ export default function ProductClientManager({ product, initialVendors }: any) {
     });
   };
 
+  const canReturnLog = (log: any) => {
+    if (log.action !== "OUTWARD") return false;
+    if (Math.abs(log.quantity) === 0) return false; // Already fully returned
+
+    const loggedTime = new Date(log.createdAt).getTime();
+    const now = new Date().getTime();
+    const hoursElapsed = (now - loggedTime) / (1000 * 60 * 60);
+
+    return hoursElapsed <= 24;
+  };
+
+  const closeInwardPortal = () => {
+    setInwardForm({
+      vendorId: "",
+      batch: "",
+      quantity: 0,
+      costPrice: 0
+    });
+    setIsInwardOpen(false); // Closes the modal overlay
+  };
+
+  // 3. Create the state clearing function for safe closing
+  const closeReturnPortal = () => {
+    setReturnForm({
+      quantity: 0,
+      notes: "",
+    });
+    setIsReturnOpen(false);
+  };
+
   const handleOutwardSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     startTransition(async () => {
@@ -41,6 +79,29 @@ export default function ProductClientManager({ product, initialVendors }: any) {
       if (res.success) {
         toast.success("Stock dispatch successfully certified");
         setIsOutwardOpen(false);
+      } else {
+        toast.error(res.error);
+      }
+    });
+  };
+
+  const handleReturnSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedLog) return;
+
+    startTransition(async () => {
+      const res = await processVerifiedReturn({
+        logId: selectedLog.id,
+        productId: product.id,
+        quantityToReturn: returnForm.quantity,
+        returnNotes: returnForm.notes,
+      });
+
+      if (res.success) {
+        toast.success("Return certified. Stock numbers updated successfully.");
+        setReturnForm({ quantity: 0, notes: "" });
+        setSelectedLog(null);
+        setIsReturnOpen(false);
       } else {
         toast.error(res.error);
       }
@@ -61,25 +122,33 @@ export default function ProductClientManager({ product, initialVendors }: any) {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white p-5 md:p-6 rounded-2xl border border-blue-100 shadow-sm">
             <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">Stock Control Center</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
-              <div className="p-4 border border-emerald-100 bg-emerald-50/20 rounded-xl flex items-start gap-3">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+
+              {/* Inward / Restock Card */}
+              <div className="p-4 border border-emerald-100 bg-emerald-50/20 rounded-xl flex flex-col sm:flex-row items-start gap-3 min-w-0">
                 <PlusCircle className="w-6 h-6 text-emerald-600 shrink-0 mt-0.5" />
-                <div className="space-y-1.5 w-full">
-                  <p className="font-bold text-emerald-950 text-sm">Replenish/Restock Batch</p>
-                  <p className="text-xs text-gray-500">Log new incoming inventory received from suppliers.</p>
-                  <button onClick={() => setIsInwardOpen(true)} className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-lg mt-2 transition-all">
+                <div className="space-y-1.5 w-full min-w-0 flex flex-col items-start">
+                  <p className="font-bold text-emerald-950 text-sm break-words">Replenish/Restock Batch</p>
+                  <p className="text-xs text-gray-500 break-words">Log new incoming inventory received from suppliers.</p>
+                  <button
+                    onClick={() => setIsInwardOpen(true)}
+                    className="w-full sm:w-auto text-center text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-2 rounded-lg mt-2 transition-all active:scale-95 whitespace-nowrap"
+                  >
                     Open Inward Portal
                   </button>
                 </div>
               </div>
 
-              <div className="p-4 border border-rose-100 bg-rose-50/20 rounded-xl flex items-start gap-3">
+              {/* Outward / Dispatch Card */}
+              <div className="p-4 border border-rose-100 bg-rose-50/20 rounded-xl flex flex-col sm:flex-row items-start gap-3 min-w-0">
                 <MinusCircle className="w-6 h-6 text-rose-600 shrink-0 mt-0.5" />
-                <div className="space-y-1.5 w-full">
-                  <p className="font-bold text-rose-950 text-sm">Deploy Items / Outward Log</p>
-                  <p className="text-xs text-gray-500">Record stock issued to technicians for installations.</p>
-                  <button onClick={() => setIsOutwardOpen(true)} className="text-xs bg-rose-600 hover:bg-rose-700 text-white font-semibold px-3 py-1.5 rounded-lg mt-2 transition-all">
+                <div className="space-y-1.5 w-full min-w-0 flex flex-col items-start">
+                  <p className="font-bold text-rose-950 text-sm break-words">Deploy Items / Outward Log</p>
+                  <p className="text-xs text-gray-500 break-words">Record stock issued to technicians for installations.</p>
+                  <button
+                    onClick={() => setIsOutwardOpen(true)}
+                    className="w-full sm:w-auto text-center text-xs bg-rose-600 hover:bg-rose-700 text-white font-semibold px-3 py-2 rounded-lg mt-2 transition-all active:scale-95 whitespace-nowrap"
+                  >
                     Dispatch to Field
                   </button>
                 </div>
@@ -134,15 +203,37 @@ export default function ProductClientManager({ product, initialVendors }: any) {
           <div className="bg-white p-5 rounded-2xl border border-blue-100 shadow-sm space-y-4">
             <h3 className="font-bold text-blue-900 flex items-center gap-2 border-b pb-2 text-sm uppercase tracking-wider"><History className="w-4 h-4" /> Operations Audit Log</h3>
             <div className="space-y-4 max-h-[380px] overflow-y-auto">
-              {product.stockHistory.map((log: any) => (
-                <div key={log.id} className="text-xs border-l-2 border-slate-100 pl-3 py-0.5 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className={`font-bold text-[10px] px-1.5 py-0.5 rounded ${log.action === "INWARD" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>{log.action} ({log.quantity})</span>
+              {product.stockHistory.map((log: any) => {
+                const availableToReturn = Math.abs(log.quantity);
+                const eligible = canReturnLog(log);
+
+                return (
+                  <div key={log.id} className="text-xs border-l-2 border-slate-100 pl-3 py-1 space-y-1 group relative">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`font-bold text-[10px] px-1.5 py-0.5 rounded ${log.action === "INWARD" ? "bg-emerald-50 text-emerald-700" :
+                          log.action === "OUTWARD" ? "bg-rose-50 text-rose-700" : "bg-amber-50 text-amber-700"
+                        }`}>
+                        {log.action} ({log.quantity})
+                      </span>
+
+                      {/* INLINE RETURN BUTTON: Only renders if conditions pass */}
+                      {eligible && (
+                        <button
+                          onClick={() => {
+                            setSelectedLog(log);
+                            setIsReturnOpen(true);
+                          }}
+                          className="text-[10px] bg-amber-500 hover:bg-amber-600 text-white font-bold px-2 py-0.5 rounded transition-all active:scale-95 shadow-sm"
+                        >
+                          Return Item
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-gray-700 font-medium break-words">{log.note}</p>
+                    <p className="text-[10px] text-gray-400">By {log.performedBy.username} • {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
-                  <p className="text-gray-700 font-medium">{log.note}</p>
-                  <p className="text-[10px] text-gray-400">By {log.performedBy.username}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -154,7 +245,7 @@ export default function ProductClientManager({ product, initialVendors }: any) {
           <form onSubmit={handleInwardSubmit} className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-150">
             <div className="bg-emerald-600 p-4 text-white flex justify-between items-center">
               <h3 className="font-bold flex items-center gap-2"><PlusCircle /> Inward Stock Portal</h3>
-              <button type="button" onClick={() => setIsInwardOpen(false)}><X /></button>
+              <button type="button" onClick={closeInwardPortal}><X /></button>
             </div>
             <div className="p-6 space-y-4">
               <div className="space-y-1">
@@ -214,6 +305,42 @@ export default function ProductClientManager({ product, initialVendors }: any) {
               </div>
               <button disabled={isPending} className="w-full bg-rose-600 text-white font-bold py-3 rounded-xl mt-4 hover:bg-rose-700 disabled:bg-gray-300">
                 {isPending ? "Processing Extraction..." : "Authorize Field Dispatch"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {isReturnOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <form onSubmit={handleReturnSubmit} className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-150">
+            <div className="bg-amber-600 p-4 text-white flex justify-between items-center">
+              <h3 className="font-bold flex items-center gap-2"><RefreshCw className="w-5 h-5 animate-spin-slow" /> Return to Inventory Portal</h3>
+              <button type="button" onClick={() => setIsReturnOpen(false)}><X /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-600">Quantity being Returned</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  onChange={(e) => setReturnForm({ ...returnForm, quantity: parseInt(e.target.value) })}
+                  className="w-full p-2.5 border rounded-xl text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-600">Reason / Return Notes</label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="e.g., Returned by Tech Ram—Client subscriber canceled contract before installation."
+                  onChange={(e) => setReturnForm({ ...returnForm, notes: e.target.value })}
+                  className="w-full p-2.5 border rounded-xl text-sm resize-none"
+                />
+              </div>
+              <button disabled={isPending} className="w-full bg-amber-600 text-white font-bold py-3 rounded-xl mt-4 hover:bg-amber-700 disabled:bg-gray-300">
+                {isPending ? "Processing Return..." : "Accept Items Back Into Stock"}
               </button>
             </div>
           </form>

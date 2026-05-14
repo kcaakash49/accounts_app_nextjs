@@ -233,3 +233,150 @@ export async function consumeStock({
     return { success: false, error: error.message || "Dispatch operation failed" };
   }
 }
+
+export async function returnStock({
+  productId,
+  quantityToReturn,
+  returnNotes,
+}: {
+  productId: string;
+  quantityToReturn: number;
+  returnNotes: string;
+}) {
+  const token = (await cookies()).get("token")?.value;
+  if (!token) return { success: false, error: "Unauthorized" };
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    if (typeof decoded !== "object" || !("id" in decoded)) {
+      return { success: false, error: "Invalid identity" };
+    }
+
+    await client.$transaction(async (prisma) => {
+      // 1. Find the latest batch for this product to put the item back into
+      const latestBatch = await prisma.stockBatchTable.findFirst({
+        where: { productId },
+        orderBy: { createdAt: "desc" }, // Put it back into the newest batch pool
+      });
+
+      if (!latestBatch) {
+        throw new Error("No active batch found to assign this return to.");
+      }
+
+      // 2. Add the quantity back into that batch
+      await prisma.stockBatchTable.update({
+        where: { id: latestBatch.id },
+        data: {
+          quantity: {
+            increment: quantityToReturn,
+          },
+        },
+      });
+
+      // 3. Create the positive footprint trail log marked as RETURN
+      await prisma.stockLog.create({
+        data: {
+          productId,
+          quantity: quantityToReturn, // Stored as a positive addition back to stock
+          action: "RETURN",
+          note: returnNotes || "Unused equipment returned from field deployment",
+          performedById: decoded.id,
+        },
+      });
+    });
+
+    revalidatePath(`/dashboard/inventory/${productId}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, error: error.message || "Failed to process stock return" };
+  }
+}
+
+
+
+export async function processVerifiedReturn({
+  productId,
+  logId,
+  quantityToReturn,
+  returnNotes,
+}: {
+  productId: string;
+  logId: string;
+  quantityToReturn: number;
+  returnNotes: string;
+}) {
+  const token = (await cookies()).get("token")?.value;
+  if (!token) return { success: false, error: "Unauthorized" };
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    if (typeof decoded !== "object" || !("id" in decoded)) return { success: false, error: "Invalid token" };
+
+    await client.$transaction(async (prisma) => {
+      // 1. Fetch the exact dynamic outward log row
+      const originalLog = await prisma.stockLog.findUnique({
+        where: { id: logId },
+      });
+
+      if (!originalLog || originalLog.action !== "OUTWARD") {
+        throw new Error("Target transaction dispatch log not found.");
+      }
+
+      // 2. Enforce the 24-hour cutoff safety gate
+      const loggedTime = new Date(originalLog.createdAt).getTime();
+      const now = new Date().getTime();
+      const hoursElapsed = (now - loggedTime) / (1000 * 60 * 60);
+
+      if (hoursElapsed > 24) {
+        throw new Error("Return window expired. Materials out past 24 hours must be balanced via manual adjustment.");
+      }
+
+      // 3. Enforce capacity bounds (original outward quantity is logged as a negative value, e.g., -5)
+      const maxAllowedReturn = Math.abs(originalLog.quantity);
+      if (quantityToReturn > maxAllowedReturn) {
+        throw new Error(`Invalid quantity. You cannot return more than what was dispatched (${maxAllowedReturn} units).`);
+      }
+
+      // 4. Find the newest active batch structure for this product to put the inventory back into
+      const targetBatch = await prisma.stockBatchTable.findFirst({
+        where: { productId: originalLog.productId },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (!targetBatch) {
+        throw new Error("No existing batch structure found to deposit returns.");
+      }
+
+      // 5. Update the batch pool balance numbers
+      await prisma.stockBatchTable.update({
+        where: { id: targetBatch.id },
+        data: { quantity: { increment: quantityToReturn } },
+      });
+
+      // 6. Write the verified return entry inside the audit trail
+      await prisma.stockLog.create({
+        data: {
+          productId: originalLog.productId,
+          quantity: quantityToReturn,
+          action: "RETURN",
+          referenceId: originalLog.id, // Links this return explicitly to the original dispatch log
+          note: `[Verified Return for Log #${originalLog.id.substring(0,6)}] - ${returnNotes}`,
+          performedById: decoded.id,
+        },
+      });
+
+      // 7. Reduce the capacity pool on the original log row so it can't be reused or double-returned
+      // e.g., if it was -5, and 2 are returned, changing it to -3 protects the remaining capacity threshold
+      await prisma.stockLog.update({
+        where: { id: originalLog.id },
+        data: { quantity: originalLog.quantity + quantityToReturn },
+      });
+    });
+     revalidatePath(`/dashboard/inventory/${productId}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, error: error.message || "Failed to process verified ledger return" };
+  }
+}
