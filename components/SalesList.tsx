@@ -111,7 +111,7 @@ export default function SalesList({ sales }: { sales: SaleSchema[] }) {
                   {sale.customer.name}
                 </Link>
               </div>
-              {getStatusBadge(sale.customer.status)}
+              {/* {getStatusBadge(sale.customer.status)} */}
             </div>
 
             {/* Mobile Content Grid */}
