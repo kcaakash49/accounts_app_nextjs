@@ -15,6 +15,7 @@ const navSections = [
   { name: "Payment History", path: "/dashboard/payment-history", accessibleRoles: ["admin", "staff"] },
 
   { name: "Sales", path: "/dashboard/sales", accessibleRoles: ["admin"] },
+  { name: "Inventory", path: "/dashboard/inventory", accessibleRoles: ["admin"] },
   { name: "Expense", path: "/dashboard/expenses", accessibleRoles: ["admin"] },
 ];
 
@@ -30,8 +31,6 @@ export default function AdminSidebarClient() {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  
 
 
   return (

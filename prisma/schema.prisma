@@ -59,6 +59,7 @@ model AdminUser {
   expenses      Expenses[]
   payments      Payment[]
   trashPayments TrashPayment[]
+  stockOperations StockLog[]
 }
 
 model Expenses {
@@ -120,8 +121,8 @@ model Vendor {
   email     String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  products  Product[] // One-to-many relationship with items they supply
-
+  products  StockBatchTable[] // One-to-many relationship with items they supply
+  
   @@map("vendors")
 }
 
@@ -147,29 +148,32 @@ model Product {
   id          String   @id @default(uuid())
   sku         String   @unique // Stock Keeping Unit for unique identification
   name        String   // e.g., "12 Core ADSS Fiber Cable"
-  quantity    Int      @default(0) // Live inventory tracking
   minStock    Int      @default(5) // Low stock alert threshold
-  costPrice   Decimal  @db.Decimal(10, 2)
-  salePrice   Decimal? @db.Decimal(10, 2) // Optional if strictly internal usage
-  
-  // Dynamic Specifications Block
-  // For Fiber:    {"meter": 1000, "core": 12, "type": "Armored"}
-  // For Drop Cable: {"length": 300, "connectorType": "SC/UPC"}
   specs       Json     @default("{}") 
-
   // Relations
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  vendorId    String
-  vendor      Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
 
   // Tracking adjustments
+  batches      StockBatchTable[]
   stockHistory StockLog[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@map("products")
+}
+
+model StockBatchTable{
+  id String @id @default(uuid())
+  batch String
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity Int
+  costPrice   Decimal  @db.Decimal(10, 2)
+  vendorId String
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 // ==========================================
@@ -190,7 +194,8 @@ model StockLog {
   action      StockAction
   referenceId String?     // e.g., SaleId or PurchaseOrderId for cross-referencing
   note        String?     // e.g., "Assigned to customer order #230"
-  performedBy String      // User ID or name who tracked it
+  performedById Int      // User ID or name who tracked it
+  performedBy AdminUser @relation(fields: [performedById], references: [id])      // For simplicity, storing as string (e.g., "admin" or "user123")
   createdAt   DateTime    @default(now())
 
   @@map("stock_logs")
