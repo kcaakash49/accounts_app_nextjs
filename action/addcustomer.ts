@@ -5,8 +5,7 @@ import { ActiveStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 export async function addcustomer({name, contact, address,activeStatus,secondContact} : {name: string, contact: string, address: string, activeStatus: ActiveStatus, secondContact: string } ){
-    console.log(name,contact,address)
-
+  
     try {
         const existingUser = await client.customer.findFirst({
             where: {

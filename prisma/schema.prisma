@@ -109,6 +109,93 @@ model TrashPayment {
   adminUserId     Int
 }
 
+
+//IMS
+model Vendor {
+  id        String    @id @default(uuid())
+  name      String
+  address   String
+  vatNumber String?   // Optional VAT / PAN Number
+  contact   String
+  email     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[] // One-to-many relationship with items they supply
+
+  @@map("vendors")
+}
+
+// ==========================================
+// CATEGORY MANAGEMENT
+// ==========================================
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique // e.g., "Fiber Cable", "Drop Cable", "ONU"
+  slug        String    @unique // e.g., "fiber-cable", "drop-cable"
+  description String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("categories")
+}
+
+// ==========================================
+// PRODUCT & INVENTORY MANAGEMENT
+// ==========================================
+model Product {
+  id          String   @id @default(uuid())
+  sku         String   @unique // Stock Keeping Unit for unique identification
+  name        String   // e.g., "12 Core ADSS Fiber Cable"
+  quantity    Int      @default(0) // Live inventory tracking
+  minStock    Int      @default(5) // Low stock alert threshold
+  costPrice   Decimal  @db.Decimal(10, 2)
+  salePrice   Decimal? @db.Decimal(10, 2) // Optional if strictly internal usage
+  
+  // Dynamic Specifications Block
+  // For Fiber:    {"meter": 1000, "core": 12, "type": "Armored"}
+  // For Drop Cable: {"length": 300, "connectorType": "SC/UPC"}
+  specs       Json     @default("{}") 
+
+  // Relations
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  vendorId    String
+  vendor      Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  // Tracking adjustments
+  stockHistory StockLog[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("products")
+}
+
+// ==========================================
+// INVENTORY AUDIT TRAILS (Crucial for IMS)
+// ==========================================
+enum StockAction {
+  INWARD  // Stock added via purchase
+  OUTWARD // Stock consumed / assigned to customer
+  RETURN  // Returned items
+  ADJUSTMENT // Manual audit correction
+}
+
+model StockLog {
+  id          String      @id @default(uuid())
+  productId   String
+  product     Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity    Int         // Quantity changed (e.g., +500 or -20)
+  action      StockAction
+  referenceId String?     // e.g., SaleId or PurchaseOrderId for cross-referencing
+  note        String?     // e.g., "Assigned to customer order #230"
+  performedBy String      // User ID or name who tracked it
+  createdAt   DateTime    @default(now())
+
+  @@map("stock_logs")
+}
+
 enum DueStatus {
   UNPAID
   PARTIAL
