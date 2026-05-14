@@ -1,5 +1,5 @@
 import FormForProduct from "@/components/FormForProduct";
-import ProductForm from "@/components/ProductForm";
+
 import db from "@/db"
 
 export default async function AddProductPage() {
