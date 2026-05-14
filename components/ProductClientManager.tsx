@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Package, Truck, History, PlusCircle, MinusCircle, AlertCircle, Calendar, ShieldCheck, X, RefreshCw } from "lucide-react";
-import { replenishStock, consumeStock, returnStock, processVerifiedReturn } from "@/action/inventory";
+import { replenishStock, consumeStock, processVerifiedReturn, createVendor } from "@/action/inventory";
 import { toast } from "sonner";
 
 export default function ProductClientManager({ product, initialVendors }: any) {
@@ -10,11 +10,12 @@ export default function ProductClientManager({ product, initialVendors }: any) {
   const [isOutwardOpen, setIsOutwardOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState<any>(null);
   const [isReturnOpen, setIsReturnOpen] = useState(false);
+  const [vendors, setVendors] = useState(initialVendors);
+  const [isVendorModalOpen, setIsVendorModalOpen] = useState(false);
   const [returnForm, setReturnForm] = useState({
     quantity: 0,
     notes: "",
   });
-
 
   const [isPending, startTransition] = useTransition();
 
@@ -31,7 +32,7 @@ export default function ProductClientManager({ product, initialVendors }: any) {
       const res = await replenishStock({ productId: product.id, ...inwardForm });
       if (res.success) {
         toast.success("Batch successfully recorded in warehouse register");
-        setIsInwardOpen(false);
+        closeInwardPortal();
       } else {
         toast.error(res.error);
       }
@@ -56,15 +57,15 @@ export default function ProductClientManager({ product, initialVendors }: any) {
       quantity: 0,
       costPrice: 0
     });
-    setIsInwardOpen(false); // Closes the modal overlay
+    setIsInwardOpen(false);
   };
 
-  // 3. Create the state clearing function for safe closing
   const closeReturnPortal = () => {
     setReturnForm({
       quantity: 0,
       notes: "",
     });
+    setSelectedLog(null);
     setIsReturnOpen(false);
   };
 
@@ -99,9 +100,7 @@ export default function ProductClientManager({ product, initialVendors }: any) {
 
       if (res.success) {
         toast.success("Return certified. Stock numbers updated successfully.");
-        setReturnForm({ quantity: 0, notes: "" });
-        setSelectedLog(null);
-        setIsReturnOpen(false);
+        closeReturnPortal();
       } else {
         toast.error(res.error);
       }
@@ -110,7 +109,7 @@ export default function ProductClientManager({ product, initialVendors }: any) {
 
   return (
     <div className="max-w-7xl p-4 md:p-6 space-y-6 pb-24">
-      {/* UI Body layout remains identical to the previous step layout */}
+      {/* Header */}
       <div className="flex items-center gap-3">
         <div>
           <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-mono font-bold uppercase">{product.sku}</span>
@@ -119,7 +118,10 @@ export default function ProductClientManager({ product, initialVendors }: any) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+        {/* LEFT COLUMN */}
+        <div className="lg:col-span-2 space-y-6 min-w-0">
+
+          {/* Stock Control Center */}
           <div className="bg-white p-5 md:p-6 rounded-2xl border border-blue-100 shadow-sm">
             <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">Stock Control Center</h3>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -181,13 +183,40 @@ export default function ProductClientManager({ product, initialVendors }: any) {
                       <td className="px-6 py-4 text-gray-600">Rs. {Number(batch.costPrice).toLocaleString()}</td>
                     </tr>
                   ))}
+                  {product.batches.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="text-center py-6 text-sm text-gray-400 italic">No active stock batches available.</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
+
+          {/* Added: Item Parameters / Technical Specifications Block */}
+          <div className="bg-white p-5 md:p-6 rounded-2xl border border-blue-100 shadow-sm">
+            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">Item Parameters</h3>
+            {product.specs && Object.keys(product.specs).length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {Object.entries(product.specs as Record<string, any>).map(([key, value]) => (
+                  <div key={key} className="bg-slate-50 p-3 rounded-xl border border-slate-100 min-w-0">
+                    <p className="text-xs text-gray-400 capitalize truncate" title={key}>
+                      {key.replace(/([A-Z])/g, ' $1').trim()}
+                    </p>
+                    <p className="font-bold text-slate-800 text-sm mt-0.5 break-words">
+                      {String(value)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 italic py-2">No technical metadata configured for this product.</p>
+            )}
+          </div>
+
         </div>
 
-        {/* Sidebar Log Tracker Display Blocks */}
+        {/* RIGHT SIDEBAR */}
         <div className="space-y-6">
           <div className="bg-white p-5 rounded-2xl border border-blue-100 shadow-sm space-y-4">
             <div className="flex justify-between items-start">
@@ -199,24 +228,22 @@ export default function ProductClientManager({ product, initialVendors }: any) {
             </div>
           </div>
 
-          {/* Operations Audit log timeline container elements */}
+          {/* Operations Audit log timeline */}
           <div className="bg-white p-5 rounded-2xl border border-blue-100 shadow-sm space-y-4">
             <h3 className="font-bold text-blue-900 flex items-center gap-2 border-b pb-2 text-sm uppercase tracking-wider"><History className="w-4 h-4" /> Operations Audit Log</h3>
             <div className="space-y-4 max-h-[380px] overflow-y-auto">
               {product.stockHistory.map((log: any) => {
-                const availableToReturn = Math.abs(log.quantity);
                 const eligible = canReturnLog(log);
 
                 return (
                   <div key={log.id} className="text-xs border-l-2 border-slate-100 pl-3 py-1 space-y-1 group relative">
                     <div className="flex items-center justify-between gap-2">
                       <span className={`font-bold text-[10px] px-1.5 py-0.5 rounded ${log.action === "INWARD" ? "bg-emerald-50 text-emerald-700" :
-                          log.action === "OUTWARD" ? "bg-rose-50 text-rose-700" : "bg-amber-50 text-amber-700"
+                        log.action === "OUTWARD" ? "bg-rose-50 text-rose-700" : "bg-amber-50 text-amber-700"
                         }`}>
                         {log.action} ({log.quantity})
                       </span>
 
-                      {/* INLINE RETURN BUTTON: Only renders if conditions pass */}
                       {eligible && (
                         <button
                           onClick={() => {
@@ -249,9 +276,22 @@ export default function ProductClientManager({ product, initialVendors }: any) {
             </div>
             <div className="p-6 space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-600">Select Supplying Vendor</label>
-                <select required onChange={(e) => {
-                  const v = initialVendors.find((x: any) => x.id === e.target.value);
+                <div className="flex justify-between items-center">
+                  <label className="text-sm font-bold text-gray-700">Set Supplying Vendor</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeInwardPortal();
+                      setIsInwardOpen(false);
+                      setIsVendorModalOpen(true);
+                    }}
+                    className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md hover:bg-blue-100 transition-colors"
+                  >
+                    + New Vendor
+                  </button>
+                </div>
+                <select required value={inwardForm.vendorId} onChange={(e) => {
+                  const v = vendors.find((x: any) => x.id === e.target.value);
                   const yearMonth = `${new Date().getFullYear()}${(new Date().getMonth() + 1).toString().padStart(2, '0')}`;
                   setInwardForm({
                     ...inwardForm,
@@ -260,7 +300,7 @@ export default function ProductClientManager({ product, initialVendors }: any) {
                   });
                 }} className="w-full p-2.5 border rounded-xl bg-white text-sm">
                   <option value="">Choose Supplier...</option>
-                  {initialVendors.map((v: any) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                  {vendors.map((v: any) => <option key={v.id} value={v.id}>{v.name}</option>)}
                 </select>
               </div>
               <div className="space-y-1">
@@ -270,11 +310,11 @@ export default function ProductClientManager({ product, initialVendors }: any) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-gray-600">Inward Quantity</label>
-                  <input type="number" required min="1" onChange={(e) => setInwardForm({ ...inwardForm, quantity: parseInt(e.target.value) })} className="w-full p-2.5 border rounded-xl text-sm" />
+                  <input type="number" required min="1" value={inwardForm.quantity || ""} onChange={(e) => setInwardForm({ ...inwardForm, quantity: parseInt(e.target.value) })} className="w-full p-2.5 border rounded-xl text-sm" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-gray-600">Unit Cost Price</label>
-                  <input type="number" required min="0" step="0.01" onChange={(e) => setInwardForm({ ...inwardForm, costPrice: parseFloat(e.target.value) })} className="w-full p-2.5 border rounded-xl text-sm" />
+                  <input type="number" required min="0" step="0.01" value={inwardForm.costPrice || ""} onChange={(e) => setInwardForm({ ...inwardForm, costPrice: parseFloat(e.target.value) })} className="w-full p-2.5 border rounded-xl text-sm" />
                 </div>
               </div>
               <button disabled={isPending} className="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl mt-4 hover:bg-emerald-700 disabled:bg-gray-300">
@@ -311,22 +351,30 @@ export default function ProductClientManager({ product, initialVendors }: any) {
         </div>
       )}
 
-      {isReturnOpen && (
+      {/* --- MODAL 3: RETURN PORTAL --- */}
+      {isReturnOpen && selectedLog && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <form onSubmit={handleReturnSubmit} className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-150">
             <div className="bg-amber-600 p-4 text-white flex justify-between items-center">
-              <h3 className="font-bold flex items-center gap-2"><RefreshCw className="w-5 h-5 animate-spin-slow" /> Return to Inventory Portal</h3>
-              <button type="button" onClick={() => setIsReturnOpen(false)}><X /></button>
+              <h3 className="font-bold flex items-center gap-2"><RefreshCw className="w-5 h-5" /> Return to Inventory Portal</h3>
+              <button type="button" onClick={closeReturnPortal}><X /></button>
             </div>
             <div className="p-6 space-y-4">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
+                <p className="text-[10px] font-bold text-gray-400 uppercase">Original Dispatch Reference</p>
+                <p className="text-xs text-gray-700 font-medium italic">"{selectedLog.note}"</p>
+              </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold text-gray-600">Quantity being Returned</label>
                 <input
                   type="number"
                   required
                   min="1"
+                  max={Math.abs(selectedLog.quantity)}
+                  value={returnForm.quantity || ""}
                   onChange={(e) => setReturnForm({ ...returnForm, quantity: parseInt(e.target.value) })}
                   className="w-full p-2.5 border rounded-xl text-sm"
+                  placeholder={`Max allowed: ${Math.abs(selectedLog.quantity)} units...`}
                 />
               </div>
               <div className="space-y-1">
@@ -334,6 +382,7 @@ export default function ProductClientManager({ product, initialVendors }: any) {
                 <textarea
                   required
                   rows={3}
+                  value={returnForm.notes}
                   placeholder="e.g., Returned by Tech Ram—Client subscriber canceled contract before installation."
                   onChange={(e) => setReturnForm({ ...returnForm, notes: e.target.value })}
                   className="w-full p-2.5 border rounded-xl text-sm resize-none"
@@ -346,6 +395,78 @@ export default function ProductClientManager({ product, initialVendors }: any) {
           </form>
         </div>
       )}
+
+      {isVendorModalOpen && (
+        <QuickAddModal
+          title="Add Vendor"
+          icon={<Truck />}
+          onClose={() => setIsVendorModalOpen(false)}
+          onSave={async (data: any) => {
+            const res = await createVendor(data);
+            if (res.success && res.data) {
+              toast.success("Vendor created successfully!");
+              setVendors([...vendors, res.data]);
+              setIsVendorModalOpen(false);
+            }
+          }}
+          fields={[
+            { name: 'name', label: 'Vendor Name', placeholder: 'Global Fiber Ltd' },
+            { name: 'address', label: 'Address', placeholder: 'Kathmandu, Nepal' },
+            { name: 'contact', label: 'Contact', placeholder: '98********' },
+            { name: 'vatNumber', label: 'VAT Number (Optional)', placeholder: '600123456' },
+            { name: 'email', label: 'Email (Optional)', placeholder: 'akc@gmail.com' },
+          ]}
+        />
+      )}
+    </div>
+  );
+}
+
+
+function QuickAddModal({ title, icon, onClose, fields, onSave }: any) {
+  const [modalData, setModalData] = useState<any>({});
+  const [isPending, startTransition] = useTransition();
+
+  const handleModalSave = async () => {
+    startTransition(async () => {
+      await onSave(modalData);
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-blue-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="bg-blue-600 p-4 text-white flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            {icon}
+            <h3 className="font-bold">{title}</h3>
+          </div>
+          <button onClick={onClose}><X className="w-5 h-5 opacity-70 hover:opacity-100" /></button>
+        </div>
+        <div className="p-6 space-y-4">
+          {fields.map((f: any) => (
+            <div key={f.name} className="space-y-1">
+              <label className="text-sm font-semibold text-gray-700">{f.label}</label>
+              <input
+                type="text"
+                onChange={(e) => setModalData({ ...modalData, [f.name]: e.target.value })}
+                placeholder={f.placeholder}
+                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+          ))}
+          <div className="flex gap-3 pt-4">
+            <button onClick={onClose} className="flex-1 py-2.5 text-gray-500 font-medium hover:bg-gray-100 rounded-xl">Cancel</button>
+            <button
+              onClick={handleModalSave}
+              disabled={isPending}
+              className="flex-1 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:bg-gray-400 shadow-md"
+            >
+              {isPending ? "Saving..." : "Save Info"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
