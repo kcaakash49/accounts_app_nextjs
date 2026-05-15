@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import Loading from "../loading";
 
 export type User = {
     id: number;
@@ -54,9 +55,7 @@ export default function () {
     }, [isError])
 
     if (isLoading) {
-        return <div className="min-h-screen flex items-center justify-center">
-            Loading.......
-        </div>
+        return <Loading/>
     }
     const users = data?.users || [];
     const meta = data?.meta;

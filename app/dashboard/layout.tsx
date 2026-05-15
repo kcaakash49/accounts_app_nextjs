@@ -62,7 +62,7 @@ export default async function DashLayout({ children }: { children: ReactNode }) 
               {children}
             </div>
           </main>
-          <footer className="flex-shrink-0 text-center border-t p-2  border-secondary-200 dark:border-secondary-700 fixed bottom-0 left-0 right-0">
+          <footer className="flex-shrink-0 text-center border-t p-2  border-secondary-200 dark:border-secondary-700">
             {/* <Footer /> */}
             <br></br>
             <span>&copy; 2026 Nice IT Solution Pvt. Ltd.</span>

@@ -217,7 +217,7 @@ export default function FormForProduct({ initialCategories}: any) {
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-[0.98] flex justify-center items-center gap-2"
           >
             {isPending ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
-            {isPending ? "Saving Product..." : "Finalize & Save Product"}
+            {isPending ? "Editing Product..." : "Finalize & Save Product"}
           </button>
         </div>
       </form>

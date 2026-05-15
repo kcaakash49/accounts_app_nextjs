@@ -380,3 +380,29 @@ export async function processVerifiedReturn({
     return { success: false, error: error.message || "Failed to process verified ledger return" };
   }
 }
+
+export async function editProduct({formData}: {formData: {productId: string, name: string, categoryId: string, sku: string, minStock: number}}) {
+  const token = (await cookies()).get("token")?.value;
+  if (!token) return { success: false, error: "Unauthorized" };
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    if (typeof decoded !== "object" || !("id" in decoded)) return { success: false, error: "Invalid identity" };
+
+    await client.product.update({
+      where: { id: formData.productId },
+      data: {
+        name: formData.name,
+        categoryId: formData.categoryId,
+        sku: formData.sku,
+        minStock: formData.minStock,
+      },
+    });
+    revalidatePath(`/dashboard/inventory`);
+    revalidatePath(`/dashboard/inventory/${formData.productId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Error editing product:", error);
+    return { success: false, error: "Failed to edit product" };
+  }
+} 

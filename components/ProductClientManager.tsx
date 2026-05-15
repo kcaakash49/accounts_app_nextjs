@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Package, Truck, History, PlusCircle, MinusCircle, AlertCircle, Calendar, ShieldCheck, X, RefreshCw } from "lucide-react";
+import { Package, Truck, History, PlusCircle, MinusCircle, AlertCircle, Calendar, ShieldCheck, X, RefreshCw, Edit2, Edit, Delete, DeleteIcon, LucideDelete, Trash2 } from "lucide-react";
 import { replenishStock, consumeStock, processVerifiedReturn, createVendor } from "@/action/inventory";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function ProductClientManager({ product, initialVendors }: any) {
   const [isInwardOpen, setIsInwardOpen] = useState(false);
@@ -18,6 +19,7 @@ export default function ProductClientManager({ product, initialVendors }: any) {
   });
 
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   // Internal Modal Input States
   const [inwardForm, setInwardForm] = useState({ vendorId: "", batch: "", quantity: 0, costPrice: 0 });
@@ -110,10 +112,14 @@ export default function ProductClientManager({ product, initialVendors }: any) {
   return (
     <div className="max-w-7xl p-4 md:p-6 space-y-6 pb-24">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-mono font-bold uppercase">{product.sku}</span>
           <h1 className="text-2xl font-bold text-blue-900 mt-1">{product.name}</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="bg-blue-600 p-1 rounded-md text-white hover:bg-blue-800 transition-colors cursor-pointer" onClick={() => router.push(`/dashboard/inventory/edit/${product.id}`)}><Edit /></button>
+          <button className="bg-rose-600 p-1 rounded-md text-white hover:bg-rose-800 transition-colors cursor-pointer"><Trash2 /></button>
         </div>
       </div>
 
@@ -292,11 +298,17 @@ export default function ProductClientManager({ product, initialVendors }: any) {
                 </div>
                 <select required value={inwardForm.vendorId} onChange={(e) => {
                   const v = vendors.find((x: any) => x.id === e.target.value);
-                  const yearMonth = `${new Date().getFullYear()}${(new Date().getMonth() + 1).toString().padStart(2, '0')}`;
+                  const now = new Date();
+                  const year = now.getFullYear();
+                  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                  const day = now.getDate().toString().padStart(2, '0');
+
+                  const dateString = `${year}${month}${day}`;
+
                   setInwardForm({
                     ...inwardForm,
                     vendorId: e.target.value,
-                    batch: v ? `${v.name.substring(0, 2).toUpperCase()}-${yearMonth}` : ""
+                    batch: v ? `${v.name.substring(0, 2).toUpperCase()}-${dateString}` : ""
                   });
                 }} className="w-full p-2.5 border rounded-xl bg-white text-sm">
                   <option value="">Choose Supplier...</option>
@@ -434,7 +446,7 @@ function QuickAddModal({ title, icon, onClose, fields, onSave }: any) {
   };
 
   return (
-    <div className="fixed inset-0 bg-blue-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="bg-blue-600 p-4 text-white flex justify-between items-center">
           <div className="flex items-center gap-3">
