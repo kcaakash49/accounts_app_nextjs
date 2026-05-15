@@ -105,10 +105,6 @@ export async function createProduct({ formdata }: { formdata: ProductData }) {
   }
 }
 
-
-
-
-
 // --- 1. INWARD PORTAL ACTION (RESTOCK) ---
 export async function replenishStock({
   productId,
@@ -119,7 +115,7 @@ export async function replenishStock({
 }: {
   productId: string;
   vendorId: string;
-  batch:string;
+  batch: string;
   quantity: number;
   costPrice: number;
 }) {
@@ -128,10 +124,35 @@ export async function replenishStock({
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    if (typeof decoded !== "object" || !("id" in decoded)) return { success: false, error: "Invalid identity" };
+    if (typeof decoded !== "object" || !("id" in decoded))
+      return { success: false, error: "Invalid identity" };
 
     await client.$transaction(async (prisma) => {
       // Create a brand new batch pool
+      const checkBatch = await prisma.stockBatchTable.findFirst({
+        where: {
+          productId,
+          batch,
+        },
+      });
+
+      if (checkBatch) {
+        await prisma.stockBatchTable.update({
+          where: { id: checkBatch.id},
+          data: { quantity: {increment:quantity}},
+        });
+        await prisma.stockLog.create({
+          data: {
+            productId,
+            quantity,
+            action: "INWARD",
+            note: `Restocked batch ${batch}`,
+            performedById: decoded.id,
+          },
+        });
+        return;
+      }
+
       await prisma.stockBatchTable.create({
         data: {
           productId,
@@ -177,7 +198,8 @@ export async function consumeStock({
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    if (typeof decoded !== "object" || !("id" in decoded)) return { success: false, error: "Invalid identity" };
+    if (typeof decoded !== "object" || !("id" in decoded))
+      return { success: false, error: "Invalid identity" };
 
     const result = await client.$transaction(async (prisma) => {
       // Find active batches for this product ordered by oldest first (FIFO - First In First Out)
@@ -186,7 +208,10 @@ export async function consumeStock({
         orderBy: { createdAt: "asc" },
       });
 
-      const totalAvailable = activeBatches.reduce((sum, b) => sum + b.quantity, 0);
+      const totalAvailable = activeBatches.reduce(
+        (sum, b) => sum + b.quantity,
+        0,
+      );
       if (totalAvailable < quantityToConsume) {
         throw new Error(`Insufficient stock. Available: ${totalAvailable}`);
       }
@@ -230,10 +255,14 @@ export async function consumeStock({
     return { success: true };
   } catch (error: any) {
     console.error(error);
-    return { success: false, error: error.message || "Dispatch operation failed" };
+    return {
+      success: false,
+      error: error.message || "Dispatch operation failed",
+    };
   }
 }
 
+//unused
 export async function returnStock({
   productId,
   quantityToReturn,
@@ -279,7 +308,8 @@ export async function returnStock({
           productId,
           quantity: quantityToReturn, // Stored as a positive addition back to stock
           action: "RETURN",
-          note: returnNotes || "Unused equipment returned from field deployment",
+          note:
+            returnNotes || "Unused equipment returned from field deployment",
           performedById: decoded.id,
         },
       });
@@ -289,11 +319,12 @@ export async function returnStock({
     return { success: true };
   } catch (error: any) {
     console.error(error);
-    return { success: false, error: error.message || "Failed to process stock return" };
+    return {
+      success: false,
+      error: error.message || "Failed to process stock return",
+    };
   }
 }
-
-
 
 export async function processVerifiedReturn({
   productId,
@@ -311,7 +342,8 @@ export async function processVerifiedReturn({
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    if (typeof decoded !== "object" || !("id" in decoded)) return { success: false, error: "Invalid token" };
+    if (typeof decoded !== "object" || !("id" in decoded))
+      return { success: false, error: "Invalid token" };
 
     await client.$transaction(async (prisma) => {
       // 1. Fetch the exact dynamic outward log row
@@ -329,13 +361,17 @@ export async function processVerifiedReturn({
       const hoursElapsed = (now - loggedTime) / (1000 * 60 * 60);
 
       if (hoursElapsed > 24) {
-        throw new Error("Return window expired. Materials out past 24 hours must be balanced via manual adjustment.");
+        throw new Error(
+          "Return window expired. Materials out past 24 hours must be balanced via manual adjustment.",
+        );
       }
 
       // 3. Enforce capacity bounds (original outward quantity is logged as a negative value, e.g., -5)
       const maxAllowedReturn = Math.abs(originalLog.quantity);
       if (quantityToReturn > maxAllowedReturn) {
-        throw new Error(`Invalid quantity. You cannot return more than what was dispatched (${maxAllowedReturn} units).`);
+        throw new Error(
+          `Invalid quantity. You cannot return more than what was dispatched (${maxAllowedReturn} units).`,
+        );
       }
 
       // 4. Find the newest active batch structure for this product to put the inventory back into
@@ -345,7 +381,9 @@ export async function processVerifiedReturn({
       });
 
       if (!targetBatch) {
-        throw new Error("No existing batch structure found to deposit returns.");
+        throw new Error(
+          "No existing batch structure found to deposit returns.",
+        );
       }
 
       // 5. Update the batch pool balance numbers
@@ -361,7 +399,7 @@ export async function processVerifiedReturn({
           quantity: quantityToReturn,
           action: "RETURN",
           referenceId: originalLog.id, // Links this return explicitly to the original dispatch log
-          note: `[Verified Return for Log #${originalLog.id.substring(0,6)}] - ${returnNotes}`,
+          note: `[Verified Return for Log #${originalLog.id.substring(0, 6)}] - ${returnNotes}`,
           performedById: decoded.id,
         },
       });
@@ -373,21 +411,35 @@ export async function processVerifiedReturn({
         data: { quantity: originalLog.quantity + quantityToReturn },
       });
     });
-     revalidatePath(`/dashboard/inventory/${productId}`);
+    revalidatePath(`/dashboard/inventory/${productId}`);
     return { success: true };
   } catch (error: any) {
     console.error(error);
-    return { success: false, error: error.message || "Failed to process verified ledger return" };
+    return {
+      success: false,
+      error: error.message || "Failed to process verified ledger return",
+    };
   }
 }
 
-export async function editProduct({formData}: {formData: {productId: string, name: string, categoryId: string, sku: string, minStock: number}}) {
+export async function editProduct({
+  formData,
+}: {
+  formData: {
+    productId: string;
+    name: string;
+    categoryId: string;
+    sku: string;
+    minStock: number;
+  };
+}) {
   const token = (await cookies()).get("token")?.value;
   if (!token) return { success: false, error: "Unauthorized" };
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    if (typeof decoded !== "object" || !("id" in decoded)) return { success: false, error: "Invalid identity" };
+    if (typeof decoded !== "object" || !("id" in decoded))
+      return { success: false, error: "Invalid identity" };
 
     await client.product.update({
       where: { id: formData.productId },
@@ -405,4 +457,4 @@ export async function editProduct({formData}: {formData: {productId: string, nam
     console.error("Error editing product:", error);
     return { success: false, error: "Failed to edit product" };
   }
-} 
+}
