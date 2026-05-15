@@ -213,7 +213,7 @@ export default function CustomerDetailPage() {
         </div>
       </section>
 
-      <TransactionLog logs={logs} />
+      <TransactionLog logs={logs} userName={user?.name || "User"} />
 
       {/* Modal */}
       <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
