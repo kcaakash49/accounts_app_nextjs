@@ -194,6 +194,7 @@ model StockLog {
   product     Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
   quantity    Int         // Quantity changed (e.g., +500 or -20)
   action      StockAction
+  batchData   Json?       // Optional details about the batch (e.g., batch number, vendor info)
   referenceId String?     // e.g., SaleId or PurchaseOrderId for cross-referencing
   note        String?     // e.g., "Assigned to customer order #230"
   performedById Int      // User ID or name who tracked it

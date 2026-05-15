@@ -138,8 +138,8 @@ export async function replenishStock({
 
       if (checkBatch) {
         await prisma.stockBatchTable.update({
-          where: { id: checkBatch.id},
-          data: { quantity: {increment:quantity}},
+          where: { id: checkBatch.id },
+          data: { quantity: { increment: quantity } },
         });
         await prisma.stockLog.create({
           data: {
@@ -194,15 +194,15 @@ export async function consumeStock({
   dispatchNotes: string;
 }) {
   const token = (await cookies()).get("token")?.value;
+
   if (!token) return { success: false, error: "Unauthorized" };
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+
     if (typeof decoded !== "object" || !("id" in decoded))
       return { success: false, error: "Invalid identity" };
-
     const result = await client.$transaction(async (prisma) => {
-      // Find active batches for this product ordered by oldest first (FIFO - First In First Out)
       const activeBatches = await prisma.stockBatchTable.findMany({
         where: { productId, quantity: { gt: 0 } },
         orderBy: { createdAt: "asc" },
@@ -217,36 +217,37 @@ export async function consumeStock({
       }
 
       let remainingToDeduct = quantityToConsume;
+      // This array will track the source of every single unit consumed
+      const consumedBatches: { batchId: string; qty: number }[] = [];
 
-      // Deduct from batches sequentially (FIFO cycle strategy)
       for (const batch of activeBatches) {
         if (remainingToDeduct <= 0) break;
 
-        if (batch.quantity >= remainingToDeduct) {
-          // Current batch has enough units to satisfy remaining deduction
-          await prisma.stockBatchTable.update({
-            where: { id: batch.id },
-            data: { quantity: batch.quantity - remainingToDeduct },
-          });
-          remainingToDeduct = 0;
-        } else {
-          // Drain current batch completely and move to next oldest batch
-          remainingToDeduct -= batch.quantity;
-          await prisma.stockBatchTable.update({
-            where: { id: batch.id },
-            data: { quantity: 0 },
-          });
-        }
+        const takeFromThisBatch = Math.min(batch.quantity, remainingToDeduct);
+
+        await prisma.stockBatchTable.update({
+          where: { id: batch.id },
+          data: { quantity: { decrement: takeFromThisBatch } },
+        });
+
+        // Push the details of this specific deduction to our map
+        consumedBatches.push({
+          batchId: batch.id,
+          qty: takeFromThisBatch,
+        });
+
+        remainingToDeduct -= takeFromThisBatch;
       }
 
-      // Write outbound profile footprint log
+      // Create the log with the 'map' stored in batchData
       await prisma.stockLog.create({
         data: {
           productId,
-          quantity: -quantityToConsume, // Log as deduction balance
+          quantity: -quantityToConsume,
           action: "OUTWARD",
           note: dispatchNotes || "Dispatched to field technician",
           performedById: decoded.id,
+          batchData: consumedBatches, // <--- Saving the trail here
         },
       });
     });
@@ -257,71 +258,7 @@ export async function consumeStock({
     console.error(error);
     return {
       success: false,
-      error: error.message || "Dispatch operation failed",
-    };
-  }
-}
-
-//unused
-export async function returnStock({
-  productId,
-  quantityToReturn,
-  returnNotes,
-}: {
-  productId: string;
-  quantityToReturn: number;
-  returnNotes: string;
-}) {
-  const token = (await cookies()).get("token")?.value;
-  if (!token) return { success: false, error: "Unauthorized" };
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    if (typeof decoded !== "object" || !("id" in decoded)) {
-      return { success: false, error: "Invalid identity" };
-    }
-
-    await client.$transaction(async (prisma) => {
-      // 1. Find the latest batch for this product to put the item back into
-      const latestBatch = await prisma.stockBatchTable.findFirst({
-        where: { productId },
-        orderBy: { createdAt: "desc" }, // Put it back into the newest batch pool
-      });
-
-      if (!latestBatch) {
-        throw new Error("No active batch found to assign this return to.");
-      }
-
-      // 2. Add the quantity back into that batch
-      await prisma.stockBatchTable.update({
-        where: { id: latestBatch.id },
-        data: {
-          quantity: {
-            increment: quantityToReturn,
-          },
-        },
-      });
-
-      // 3. Create the positive footprint trail log marked as RETURN
-      await prisma.stockLog.create({
-        data: {
-          productId,
-          quantity: quantityToReturn, // Stored as a positive addition back to stock
-          action: "RETURN",
-          note:
-            returnNotes || "Unused equipment returned from field deployment",
-          performedById: decoded.id,
-        },
-      });
-    });
-
-    revalidatePath(`/dashboard/inventory/${productId}`);
-    return { success: true };
-  } catch (error: any) {
-    console.error(error);
-    return {
-      success: false,
-      error: error.message || "Failed to process stock return",
+      error: error.message || "Failed to process stock consumption",
     };
   }
 }
@@ -374,23 +311,31 @@ export async function processVerifiedReturn({
         );
       }
 
-      // 4. Find the newest active batch structure for this product to put the inventory back into
-      const targetBatch = await prisma.stockBatchTable.findFirst({
-        where: { productId: originalLog.productId },
-        orderBy: { createdAt: "desc" },
-      });
+      const batchMap = originalLog.batchData as any[]; 
 
-      if (!targetBatch) {
-        throw new Error(
-          "No existing batch structure found to deposit returns.",
-        );
+      if (!batchMap || !Array.isArray(batchMap)) {
+        throw new Error("This log does not contain batch tracking data. Perform manual return.");
       }
 
-      // 5. Update the batch pool balance numbers
-      await prisma.stockBatchTable.update({
-        where: { id: targetBatch.id },
-        data: { quantity: { increment: quantityToReturn } },
-      });
+      let remainingToReturn = quantityToReturn;
+
+      for (let i = batchMap.length - 1; i >= 0; i--) {
+        if (remainingToReturn <= 0) break;
+
+        const source = batchMap[i];
+        // We only put back what was taken from this specific batch in this specific transaction
+        const returnToThisBatch = Math.min(source.qty, remainingToReturn);
+
+        await prisma.stockBatchTable.update({
+          where: { id: source.batchId },
+          data: { quantity: { increment: returnToThisBatch } },
+        });
+
+        // Optional: Update the batchMap qty so if they do a partial return now 
+        // and another partial later, the map stays accurate.
+        source.qty -= returnToThisBatch;
+        remainingToReturn -= returnToThisBatch;
+      }
 
       // 6. Write the verified return entry inside the audit trail
       await prisma.stockLog.create({
@@ -408,7 +353,7 @@ export async function processVerifiedReturn({
       // e.g., if it was -5, and 2 are returned, changing it to -3 protects the remaining capacity threshold
       await prisma.stockLog.update({
         where: { id: originalLog.id },
-        data: { quantity: originalLog.quantity + quantityToReturn },
+        data: { quantity: originalLog.quantity + quantityToReturn, batchData: batchMap },
       });
     });
     revalidatePath(`/dashboard/inventory/${productId}`);
