@@ -11,6 +11,7 @@ import AddFollowUp from "@/components/AddFollowUp";
 import { useQuery } from "@tanstack/react-query";
 import CustomerActions from "@/components/CustomerActions";
 import CustomerLoading from "@/components/CustomerLaoding";
+import { X } from "lucide-react";
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
@@ -217,14 +218,31 @@ export default function CustomerDetailPage() {
       {/* Modal */}
       <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
         {isPayment ? (
-          <div className="bg-green-200 p-6 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">
-              Add Payment for {user?.name}
-            </h2>
-            {user?.id && (
-              <AddPayment userID={user.id} onClose={() => setShowModal(false)} />
-            )}
+          // <div className="bg-green-200 p-6 rounded-lg">
+          //   <h2 className="text-xl font-semibold mb-4">
+          //     Add Payment for {user?.name}
+          //   </h2>
+          //   {user?.id && (
+          //     <AddPayment userID={user.id} onClose={() => setShowModal(false)} />
+          //   )}
 
+          // </div>
+           <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100 w-full animate-in fade-in zoom-in-95 duration-200">
+            {/* Header Section */}
+            <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">
+                  Record New Payment
+                </h2>
+                <p className="text-xs text-slate-500 font-medium">Assigning to: {user?.name}</p>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {user?.id && (
+                <AddPayment userID={user.id} onClose={() => setShowModal(false)} />
+              )}
+            </div>
           </div>
         ) : isFollowUp ? (
           <div className="bg-yellow-200 p-6 rounded-lg">
@@ -237,14 +255,31 @@ export default function CustomerDetailPage() {
 
           </div>
         ) : (
-          <div className="bg-red-200 p-6 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">
-              Add Sales for {user?.name!}
-            </h2>
-            {user?.id && (
-              <AddSalesForm userID={user.id} onClose={() => setShowModal(false)} />
-            )}
+          // <div className="bg-red-200 p-6 rounded-lg">
+          //   <h2 className="text-xl font-semibold mb-4">
+          //     Add Sales for {user?.name!}
+          //   </h2>
+          //   {user?.id && (
+          //     <AddSalesForm userID={user.id} onClose={() => setShowModal(false)} />
+          //   )}
 
+          // </div>
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100 w-full animate-in fade-in zoom-in-95 duration-200">
+            {/* Header Section */}
+            <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">
+                  Record New Sale
+                </h2>
+                <p className="text-xs text-slate-500 font-medium">Assigning to: {user?.name}</p>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {user?.id && (
+                <AddSalesForm userID={user.id} onClose={() => setShowModal(false)} />
+              )}
+            </div>
           </div>
         )}
       </Modal>
