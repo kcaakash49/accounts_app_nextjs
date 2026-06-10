@@ -263,7 +263,15 @@ export default function ProductClientManager({ product, initialVendors }: any) {
                       )}
                     </div>
                     <p className="text-gray-700 font-medium break-words">{log.note}</p>
-                    <p className="text-[10px] text-gray-400">By {log.performedBy.username} • {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                    <p className="text-[10px] text-gray-400">By {log.performedBy.username} • {new Date(log.createdAt).toLocaleString("en-GB", {
+                      timeZone: "Asia/Kathmandu",
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    }).replace(" at ", ", ")}</p>
                   </div>
                 );
               })}
